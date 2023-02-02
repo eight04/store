@@ -1,15 +1,11 @@
 import Events from "event-lite";
 
-export interface AnyStore extends Events {
+export interface AnyStore<T> extends Events {
   addCleanup(callback: () => void): void;
   set(patcher: any, ts?: number): void;
-  get(): any;
+  get(): T;
   destroy(): void;
   clone(): this;
-}
-
-export function store<Value>({value: Value}) {
-  return;
 }
 
 type BasicDelta<Value> = {
@@ -19,7 +15,7 @@ type BasicDelta<Value> = {
 };
 
 // a reactive store
-export class Store<Value = any, Delta = BasicDelta<Value>, SetParam = any> extends Events implements AnyStore {
+export class Store<Value = any, Delta = BasicDelta<Value>, SetParam = any> extends Events implements AnyStore<Value> {
   value: Value;
   delta?: Delta;
   ts: number = 0;
@@ -69,7 +65,9 @@ export class Store<Value = any, Delta = BasicDelta<Value>, SetParam = any> exten
     // @ts-ignore
     return new this.constructor;
   }
-  addCleanup
+  addCleanup(cb: () => void) {
+    this._cleanup.push(cb);
+  }
 }
 
 type KeyGetter<T> = (item: T) => any;
@@ -292,40 +290,29 @@ function binarySearch<Item>(arr: Array<Item>, item: Item, cmp: (a: Item, b: Item
   return low;
 }
 
-type ReturnsOfStores<Stores> = {
-  [K in keyof Stores]: Stores[K] extends Store<infer T> ? T : never
-} & []
+type Stores = AnyStore<any> | [AnyStore<any>, ...AnyStore<any>[]] | AnyStore<any>[];
+type StoresValues<T> = T extends AnyStore<infer U> ? [U] :
+  {[K in keyof T]: T[K] extends AnyStore<infer U> ? U : never};
 
-type Formatter<Stores, Value> =
-  Stores extends Store ? (storeValue: Stores["value"]) => Value :
-  (...storeReturns: ReturnsOfStores<Stores>) => Value;
-
-export function derived<Stores extends Store | Store[], Value>(input: Stores, formatter: Formatter<Stores, Value>) {
-  const stores = Array.isArray(input) ? input : [input];
-  const $s = new Store<ReturnType<typeof formatter>>(get());
+// FIXME: what happened here? why do we need two declaration?
+// https://github.com/sveltejs/svelte/blob/master/src/runtime/store/index.ts
+export function derived<S extends Stores, Value>(stores: S, fn: (...values: StoresValues<S>) => Value): Store<Value>;
+export function derived<Value>(stores: Stores, fn: (...values: any) => Value) {
+  const storeArr = Array.isArray(stores) ? stores : [stores];
+  const $s = new Store<Value>(get());
   const onChange = () => $s.set(get());
-  for (const store of stores) {
+  for (const store of storeArr) {
     store.on("change", onChange);
     $s._cleanup.push(() => store.off("change", onChange));
   }
   return $s;
 
   function get() {
-    return formatter(...stores.map(s => s.get()));
+    return fn(...storeArr.map(s => s.get()));
   }
 }
 
-const a: Store = new SetStore({key: i => i});
-
-function foo(a: any, b: typeof a) {
-  console.log(a, b);
-}
-foo(1, "b");
-
-const stores = [new Store<string>("foo"), new SetStore({key: i => i})];
-derived<typeof stores, number>(stores, (b) => 123 * b);
-
-export function filter(stores, test) {
+export function filter(stores: [], test) {
   if (!Array.isArray(stores)) {
     stores = [stores];
   }
