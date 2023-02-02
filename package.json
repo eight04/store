@@ -1,0 +1,35 @@
+{
+  "name": "@eight04/store",
+  "version": "0.2.1",
+  "description": "Reactive store aims to work with collection",
+  "author": "eight04 <eight04@gmail.com>",
+  "license": "MIT",
+  "repository": "eight04/store",
+  "keywords": [
+    "reactive",
+    "store",
+    "collection",
+    "array",
+    "set"
+  ],
+  "scripts": {
+    "test": "eslint . --cache",
+    "build": "tsc",
+    "preversion": "npm test -- --max-warnings 0",
+    "version": "npm run build && git add .",
+    "postversion": "git push --follow-tags && npm publish --access public"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.50.0",
+    "@typescript-eslint/parser": "^5.50.0",
+    "eslint": "^8.33.0",
+    "typescript": "^5.0.0-dev.20230201"
+  },
+  "files": [
+    "cli.js",
+    "index.js"
+  ],
+  "dependencies": {
+    "event-lite": "^0.1.2"
+  }
+}
