@@ -7,7 +7,9 @@ export interface AnyStore<T> {
   get(): T;
   addCleanup(callback: () => void): void;
   destroy(): void;
-  clone(): this;
+  // FIXME: hmmmmmmmmmmmmmmmm
+  // https://github.com/microsoft/TypeScript/issues/3841#issuecomment-1196418802
+  clone(): any;
 }
 
 export interface AnyDelta {
@@ -70,7 +72,8 @@ export class Store<Value, Delta = BasicDelta<Value>, SetParam = Value> extends E
     }
   }
   clone() {
-    return new Store<Value>(this.value);
+    // @ts-ignore
+    return new this.constructor(this.value);
   }
   addCleanup(cb: () => void) {
     this._cleanup.push(cb);
@@ -160,6 +163,10 @@ export class SetStore<T> extends KeyedCollection<T, Set<T>> {
   _removeItem(item: T) {
     this.value.delete(item);
   }
+  clone() {
+    // @ts-ignore
+    return new this.constructor(this.key);
+  }
 }
 
 type cmpFn<T> = (a: T, b: T) => number;
@@ -196,10 +203,7 @@ type extractFn<Item, Element> = (item: Item) => Iterable<Element>;
 export class Counter<Item, Element> extends KeyedCollection<Item, Map<Element, number>, CollectionDelta<Element>> {
   extract: extractFn<Item, Element>;
   _modified: Map<Element, number>;
-  constructor({key, extract}: {
-    key: KeyGetter<Item>;
-    extract: extractFn<Item, Element>
-  }) {
+  constructor(key: KeyGetter<Item>, extract: extractFn<Item, Element>) {
     super({value: new Map, key});
     this.extract = extract;
     this._modified = new Map;
@@ -247,6 +251,10 @@ export class Counter<Item, Element> extends KeyedCollection<Item, Map<Element, n
       }
     }
     return (delta.added.length || delta.updated.length || delta.removed.length) ? delta : undefined;
+  }
+  clone() {
+    // @ts-ignore
+    return new this.constructor(this.key, this.extract);
   }
 }
 
@@ -324,7 +332,7 @@ export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | Filte
     typeof storesOrFn === "function" ? [] :
     [storesOrFn];
   const test = typeof storesOrFn === "function" ? storesOrFn : fn!;
-  const $s = $c.clone();
+  const $s = $c.clone() as typeof $c;
   $s.set(get());
   $c.on("change", onCollectionChange);
   $s.addCleanup(() => $c.off("change", onCollectionChange));
@@ -339,7 +347,7 @@ export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | Filte
     const removed = [];
     const params = $ss.map(s => s.get());
     for (const item of items) {
-      const oldItem = $s.index.get($s.key(item));
+      const oldItem = $s.map.get($s.key(item));
       const shouldInclude = Boolean(test(item, ...params));
       if (oldItem && !shouldInclude) {
         removed.push(oldItem);
@@ -357,7 +365,7 @@ export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | Filte
 
     filteredAdded.push(...added.filter(test));
     for (const item of updated) {
-      const oldItem = $s.index.get($s.key(item));
+      const oldItem = $s.map.get($s.key(item));
       if (test(item)) {
         if (oldItem) {
           filteredUpdated.push(item);
@@ -368,7 +376,7 @@ export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | Filte
         filteredRemoved.push(oldItem);
       }
     }
-    filteredRemoved.push(...removed.filter((i: CollectionItem<typeof $c>) => $s.index.has($s.key(i))));
+    filteredRemoved.push(...removed.filter((i: CollectionItem<typeof $c>) => $s.map.has($s.key(i))));
 
     $s.set({
       added: filteredAdded,
@@ -389,7 +397,7 @@ export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | Filte
 }
 
 export function slice($c: ArrayStore<any>, $start: AnyStore<number>, $end: AnyStore<number>): typeof $c {
-  const $s = $c.clone();
+  const $s = $c.clone() as typeof $c;
   $s.set(get());
   $c.on("change", onCollectionChange);
   $s.addCleanup(() => $c.off("change", onCollectionChange));
@@ -431,7 +439,7 @@ function toMap(arr: Array<any>, keyFn: (item: any) => any) {
 }
 
 export function count<Element>($c: KeyedCollection<any, any>, extract: (item: CollectionItem<typeof $c>) => Iterable<Element>) {
-  const $s = new Counter({key: $c.key, extract});
+  const $s = new Counter($c.key, extract);
   $s.set(get());
   $c.on("change", onCollectionChange);
   $s.addCleanup(() => $c.off("change", onCollectionChange));

@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-import * as assert from "node:assert";
+import * as assert from "node:assert/strict";
 import {Store, derived} from "../index.mjs";
 
 describe("Store", () => {
@@ -16,10 +16,12 @@ describe("Store", () => {
     await p;
     assert.equal($s.get(), 3);
     const p2 = $s.setAsync(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       return 4;
     });
     $s.set(5);
+    console.log("running in")
+    assert.equal($s.get(), 5);
     await assert.rejects(p2, /in the past/);
     assert.equal($s.get(), 5);
   });
