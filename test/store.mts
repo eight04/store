@@ -16,7 +16,7 @@ describe("Store", () => {
     await p;
     assert.equal($s.get(), 3);
     const p2 = $s.setAsync(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       return 4;
     });
     $s.set(5);
