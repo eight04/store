@@ -1,9 +1,11 @@
 import Events from "event-lite";
 
-export interface AnyStore<T> extends Events {
-  addCleanup(callback: () => void): void;
+export interface AnyStore<T> {
+  on(event: string, ...args: any[]): void;
+  off(event: string, ...args: any[]): void;
   set(patcher: any, ts?: number): void;
   get(): T;
+  addCleanup(callback: () => void): void;
   destroy(): void;
   clone(): this;
 }
@@ -18,11 +20,14 @@ type BasicDelta<Value> = {
 export class Store<Value = any, Delta = BasicDelta<Value>, SetParam = any> extends Events implements AnyStore<Value> {
   value: Value;
   delta?: Delta;
-  ts: number = 0;
-  _cleanup: Array<() => void> = [];
+  ts: number;
+  _cleanup: Array<() => void>;
   constructor(value: Value) {
     super();
     this.value = value;
+    this.delta = undefined;
+    this.ts = 0;
+    this._cleanup = [];
   }
   _assertTimestamp(ts: number) {
     if (ts < this.ts) {
@@ -85,7 +90,8 @@ type CollectionDelta<T> = {
   ts: number;
 }
 
-abstract class KeyedCollection<Item, Value> extends Store<Value, CollectionDelta<Value>, CollectionSetParam<Item>> {
+export abstract class KeyedCollection<Item, Value>
+    extends Store<Value, CollectionDelta<Value>, CollectionSetParam<Item>> {
   map: Map<any, Item>;
   key: KeyGetter<Item>;
   constructor({value, key}: {
@@ -303,7 +309,7 @@ export function derived<Value>(stores: Stores, fn: (...values: any) => Value) {
   const onChange = () => $s.set(get());
   for (const store of storeArr) {
     store.on("change", onChange);
-    $s._cleanup.push(() => store.off("change", onChange));
+    $s.addCleanup(() => store.off("change", onChange));
   }
   return $s;
 
@@ -312,19 +318,19 @@ export function derived<Value>(stores: Stores, fn: (...values: any) => Value) {
   }
 }
 
-export function filter(stores: [], test) {
-  if (!Array.isArray(stores)) {
-    stores = [stores];
-  }
-  const [$c, ...$ss] = stores;
+type CollectionItem<T> = T extends KeyedCollection<infer U, any> ? U : never;
+
+export function filter<C extends KeyedCollection<any, any>, S extends Stores>(
+  $c: C, $ss: S, test: (item: CollectionItem<C>, ...values: StoresValues<S>) => boolean): C;
+export function filter($c: KeyedCollection<any, any>, stores: Stores, test: (...args: any) => boolean) {
+  const $ss = Array.isArray(stores) ? stores : [stores];
   const $s = $c.clone();
-  // FIXME: dirty flag?
   $s.set(get());
   $c.on("change", onCollectionChange);
-  $s._cleanup.push(() => $c.off("change", onCollectionChange));
+  $s.addCleanup(() => $c.off("change", onCollectionChange));
   for (const store of $ss) {
     store.on("change", onStoreChange);
-    $s._cleanup.push(() => store.off("change", onStoreChange));
+    $s.addCleanup(() => store.off("change", onStoreChange));
   }
   return $s;
 
@@ -363,7 +369,7 @@ export function filter(stores: [], test) {
         delta.removed.push(oldItem);
       }
     }
-    delta.removed.push(...removed.filter(i => $s.index.has($s.key(i))));
+    delta.removed.push(...removed.filter((i: CollectionItem<typeof $c>) => $s.index.has($s.key(i))));
     $s.set(delta, ts);
   }
 
@@ -378,20 +384,20 @@ export function filter(stores: [], test) {
   }
 }
 
-export function slice($c, $start, $end) {
+export function slice($c: ArrayStore<any>, $start: AnyStore<number>, $end: AnyStore<number>): typeof $c {
   const $s = $c.clone();
   $s.set(get());
   $c.on("change", onCollectionChange);
-  $s._cleanup.push(() => $c.off("change", onCollectionChange));
+  $s.addCleanup(() => $c.off("change", onCollectionChange));
   $start.on("change", onStoreChange);
-  $s._cleanup.push(() => $start.off("change", onStoreChange));
+  $s.addCleanup(() => $start.off("change", onStoreChange));
   $end.on("change", onStoreChange);
-  $s._cleanup.push(() => $end.off("change", onStoreChange));
+  $s.addCleanup(() => $end.off("change", onStoreChange));
   return $s;
 
   function get(updatedItems = []) {
     const oldValue = $s.get();
-    const newValue = $c.get().slice($start.get(), $end.get())
+    const newValue = $c.get().slice($start.get(), $end.get());
     const [added, updated, removed] = diff(toMap(oldValue, $s.key), toMap(newValue, $s.key), toMap(updatedItems,
       $s.key));
     return {added, updated, removed};
@@ -408,7 +414,7 @@ export function slice($c, $start, $end) {
     $s.set(get(), ts);
   }
 
-  function needRepage(added, updated, removed) {
+  function needRepage(added: CollectionItem<typeof $c>, updated: CollectionItem<typeof $c>, removed: CollectionItem<typeof $c>) {
     if (updated.length) return true;
     if (!$s.value.length) return true;
     const lastItem = $s.value[$s.value.length - 1];
@@ -416,21 +422,21 @@ export function slice($c, $start, $end) {
   }
 }
 
-function toMap(arr, key) {
-  return new Map(arr.map(i => [key(i), i]));
+function toMap(arr: Array<any>, keyFn: (item: any) => any) {
+  return new Map(arr.map(i => [keyFn(i), i]));
 }
 
-export function count($c, extract) {
+export function count<Element>($c: KeyedCollection<any, any>, extract: (item: CollectionItem<typeof $c>) => Iterable<Element>) {
   const $s = new Counter({key: $c.key, extract});
   $s.set(get());
   $c.on("change", onCollectionChange);
-  $s._cleanup.push(() => $c.off("change", onCollectionChange));
+  $s.addCleanup(() => $c.off("change", onCollectionChange));
   return $s;
 
   function get() {
     return {
       added: $c.get(),
-    }
+    };
   }
 
   function onCollectionChange({added, removed, updated, ts}) {
@@ -438,3 +444,5 @@ export function count($c, extract) {
   }
 }
 
+// TODO: sort
+// export function sort($c: KeyedCollection, $cmp: AnyStore): ArrayStore

@@ -7,3 +7,4 @@ coverage
 .eslintcache
 .env
 tsconfig.tsbuildinfo
+dist
