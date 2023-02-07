@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "index.mts"
+  ],
+  "compilerOptions": {
+    "outDir": "dist"
+  }
+}

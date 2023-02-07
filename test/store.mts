@@ -16,11 +16,11 @@ describe("Store", () => {
     await p;
     assert.equal($s.get(), 3);
     const p2 = $s.setAsync(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 200));
       return 4;
     });
+    await new Promise((resolve) => setTimeout(resolve, 100));
     $s.set(5);
-    console.log("running in")
     assert.equal($s.get(), 5);
     await assert.rejects(p2, /in the past/);
     assert.equal($s.get(), 5);

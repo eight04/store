@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 import * as assert from "node:assert";
-import {SetStore, derived, filter} from "../index.mjs";
+import {SetStore, derived} from "../index.mjs";
 
 class Item {
   id: number;
@@ -25,30 +25,18 @@ describe("SetStore", () => {
     assert.deepStrictEqual($s.get(), new Set([new Item(2, 2)]));
   });
 
+  it("key conflict", () => {
+    const $s = new SetStore<Item>(i => i.id);
+    assert.throws(() => {
+      $s.set({ added: [new Item(1, 1), new Item(1, 2)] });
+    });
+  });
+
   it("derived", () => {
     const $s = new SetStore<Item>(i => i.id);
     const $size = derived($s, s => s.size);
     assert.equal($size.get(), 0);
     $s.set({ added: [new Item(1, 1), new Item(2, 2)] });
     assert.equal($size.get(), 2);
-  });
-
-  it("filter", () => {
-    const $a = new SetStore<Item>(i => i.id);
-    const $b = filter($a, i => i.value > 0);
-    $a.set({
-      added: [
-        new Item(1, 1),
-        new Item(2, 10),
-        new Item(3, -10),
-        new Item(4, -20),
-        new Item(5, 30),
-      ]
-    });
-    assert.deepStrictEqual($b.get(), new Set([
-      new Item(1, 1),
-      new Item(2, 10),
-      new Item(5, 30)
-    ]));
   });
 });

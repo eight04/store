@@ -13,6 +13,10 @@
   },
   "compilerOptions": {
     "module": "ESNext",
-    "moduleResolution": "nodenext"
+    "moduleResolution": "nodenext",
+    "target": "esnext",
+
+    "declaration": true,
+    "declarationMap": true
   }
 }

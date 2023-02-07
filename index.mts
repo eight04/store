@@ -1,32 +1,58 @@
 import Events from "event-lite";
 
-export interface AnyStore<T> {
+/**
+ * An interface represents a valid store.
+ *
+ * Basically, a store has to be able to set/get value and emit a "change" event when value changes.
+ */
+export interface AnyStore<Value> {
+  /** Register an event listener. */
   on(event: string, ...args: any[]): void;
+  /** Remove an event listener. */
   off(event: string, ...args: any[]): void;
+  /** Set a new value. */
   set(patcher: any, ts?: number): void;
-  get(): T;
+  /** Get the value */
+  get(): Value;
+  /** Register a cleanup function. */
   addCleanup(callback: () => void): void;
+  /** Cleanup listeners attached to parent stores. */
   destroy(): void;
-  // FIXME: hmmmmmmmmmmmmmmmm
-  // https://github.com/microsoft/TypeScript/issues/3841#issuecomment-1196418802
-  clone(): any;
+  /** Clone the store. */
+  clone(): this;
 }
 
+/**
+ * An interface representing any delta event.
+ */
 export interface AnyDelta {
+  /**
+   * The timestamp of the change event.
+   */
   ts: number;
 }
 
-type BasicDelta<Value> = AnyDelta & {
+/**
+ * The basic delta for primitive stores.
+ */
+export type BasicDelta<Value> = AnyDelta & {
+  /** The old value. */
   oldValue: Value;
+  /** The new value. */
   newValue: Value;
 };
 
-// a reactive store
+/**
+ * The base class of reactive store.
+ */
 export class Store<Value, Delta = BasicDelta<Value>, SetParam = Value> extends Events implements AnyStore<Value> {
   value: Value;
   delta?: Delta;
   ts: number;
   _cleanup: Array<() => void>;
+  /**
+   * @param value - The initial value of the store.
+   */
   constructor(value: Value) {
     super();
     this.value = value;
@@ -44,9 +70,15 @@ export class Store<Value, Delta = BasicDelta<Value>, SetParam = Value> extends E
     this.delta = delta;
     this.emit("change", delta);
   }
-  set(value: SetParam, ts = Date.now()) {
+  /**
+   * Update the store
+   *
+   * @param patcher - For primitive store, this is the new value. For collection store, you have to specify added, updated, and removed items.
+   * @param ts - The timestamp.
+   */
+  set(patcher: SetParam, ts = Date.now()) {
     this._assertTimestamp(ts);
-    const delta = this._set(value, ts);
+    const delta = this._set(patcher, ts);
     if (!delta) return;
     this._afterSet(ts, delta);
   }
@@ -56,6 +88,9 @@ export class Store<Value, Delta = BasicDelta<Value>, SetParam = Value> extends E
     this.value = value;
     return delta;
   }
+  /**
+   * Set with an async function. You may want to use this function to update store with an older `ts`.
+   */
   async setAsync(callbackOrPromise: Promise<SetParam> | ((value: Value) => Promise<SetParam>)) {
     const ts = Date.now();
     const promise = typeof callbackOrPromise === "function" ?
@@ -63,40 +98,87 @@ export class Store<Value, Delta = BasicDelta<Value>, SetParam = Value> extends E
     const value = await promise;
     this.set(value, ts);
   }
+  /**
+   * Get the value.
+   */
   get() {
     return this.value;
   }
+  /**
+   * Get the latest delta.
+   */
+  getDelta() {
+    return this.delta;
+  }
+  /**
+   * Destroy the store.
+   *
+   * This function removes event listeners attached to parent stores.
+   */
   destroy() {
     while (this._cleanup.length) {
       this._cleanup.pop()!();
     }
   }
-  clone() {
-    // @ts-ignore
-    return new this.constructor(this.value);
+  /** @internal */
+  _args(): any[] {
+    return [this.value];
   }
+  /**
+   * Clone the store.
+   */
+  clone() {
+    // FIXME: hmmmmmmmmmmmmmmmm
+    // https://github.com/microsoft/TypeScript/issues/3841#issuecomment-1196418802
+    return new (this.constructor as new () => this)(...this._args() as []);
+  }
+  /**
+   * Add a cleanup function which will be called when the store is destroyed.
+   */
   addCleanup(cb: () => void) {
     this._cleanup.push(cb);
   }
 }
 
-type KeyGetter<T> = (item: T) => any;
+/**
+ * Returns the key of the item.
+ */
+export type KeyGetter<T> = (item: T) => any;
 
-type CollectionSetParam<T> = {
-  added?: Array<T>;
-  updated?: Array<T>;
-  removed?: Array<T>;
+/**
+ * Add, update, and remove items in a collection.
+ */
+export type CollectionSetParam<Item> = {
+  /** Add items. */
+  added?: Array<Item>;
+  /** Update items. */
+  updated?: Array<Item>;
+  /** Remove items. */
+  removed?: Array<Item>;
 };
 
-type CollectionDelta<T> = {
-  added: Array<T>;
-  updated: Array<T>;
-  removed: Array<T>;
+/**
+ * Delta for collection store.
+ */
+export type CollectionDelta<Item> = {
+  /** Added items. */
+  added: Array<Item>;
+  /** Updated items. */
+  updated: Array<Item>;
+  /** Removed items. */
+  removed: Array<Item>;
+  /** Timestamp. */
   ts: number;
 }
 
+/**
+ * An abstracted base class for any keyed-collection.
+ */
 export abstract class KeyedCollection<Item, Value, Delta extends CollectionDelta<any> = CollectionDelta<Item>>
     extends Store<Value, Delta, CollectionSetParam<Item>> {
+  /**
+   * A key-item map.
+   */
   map: Map<any, Item>;
   key: KeyGetter<Item>;
   constructor({value, key}: {
@@ -116,7 +198,13 @@ export abstract class KeyedCollection<Item, Value, Delta extends CollectionDelta
   abstract _removeItem(item: Item): void;
 }
 
+/**
+ * A store representing a set of items.
+ */
 export class SetStore<T> extends KeyedCollection<T, Set<T>> {
+  /**
+   * @param key - A callback function that returns the key of the item.
+   */
   constructor(key: KeyGetter<T>) {
     super({value: new Set, key});
   }
@@ -163,18 +251,29 @@ export class SetStore<T> extends KeyedCollection<T, Set<T>> {
   _removeItem(item: T) {
     this.value.delete(item);
   }
-  clone() {
-    // @ts-ignore
-    return new this.constructor(this.key);
+  _args() {
+    return [this.key];
   }
 }
 
-type cmpFn<T> = (a: T, b: T) => number;
+/**
+ * Compare two items. Returns negative if a < b, returns positive if a > b, returns zero otherwise.
+ */
+export type CmpFn<Item> = (a: Item, b: Item) => number;
 
+/**
+ * A store representing a array a.k.a sorted list of items.
+ *
+ * Items are sorted ascending.
+ */
 export class ArrayStore<Item> extends KeyedCollection<Item, Array<Item>> {
-  cmp: cmpFn<Item>;
+  cmp: CmpFn<Item>;
   _toRemove: Set<Item>;
-  constructor(key: KeyGetter<Item>, cmp: cmpFn<Item>) {
+  /**
+   * @param key - A callback function that returns the key of the item.
+   * @param cmp - Compare two items and return a number. If the number is negative, the first item is smaller than the second item. If the number is positive, the first item is larger than the second item. If the number is zero, the two items are equal.
+   */
+  constructor(key: KeyGetter<Item>, cmp: CmpFn<Item>) {
     super({value: [], key});
     this.cmp = cmp;
     this._toRemove = new Set;
@@ -192,18 +291,46 @@ export class ArrayStore<Item> extends KeyedCollection<Item, Array<Item>> {
   _removeItem(item: Item) {
     this._toRemove.add(item);
   }
-  clone() {
-    // @ts-ignore
-    return new this.constructor(this.key, this.cmp);
+  _args() {
+    return [this.key, this.cmp];
   }
 }
 
-type extractFn<Item, Element> = (item: Item) => Iterable<Element>;
+/**
+ * Extract elements from an item.
+ */
+export type ExtractFn<Item, Element> = (item: Item) => Iterable<Element>;
 
+/**
+ * A store that counts elements in a collection.
+ *
+ * The value is an element-number map.
+ *
+ * The delta contains elements instead of items.
+ *
+ * @example
+ * To count tags of a set of articles:
+ * ```js
+ * const $c = new Counter(i => i.id, i => i.tags);
+ * $c.set({
+ *  added: [
+ *    {id: 1, tags: ["foo", "bar"]},
+ *    {id: 2, tags: ["bar", "baz"]}
+ *    {id: 3, tags: ["foo"]}
+ *  ]
+ * });
+ * $c.get() // Map { "foo" -> 2, "bar" -> 2, "baz" -> 1 }
+ * $c.getDelta() // { added: ["foo", "bar", "baz"], updated: [], removed: [], ts: ... }
+ * ```
+ */
 export class Counter<Item, Element> extends KeyedCollection<Item, Map<Element, number>, CollectionDelta<Element>> {
-  extract: extractFn<Item, Element>;
+  extract: ExtractFn<Item, Element>;
   _modified: Map<Element, number>;
-  constructor(key: KeyGetter<Item>, extract: extractFn<Item, Element>) {
+  /**
+   * @param key - Returns the key of the item.
+   * @param extract - Returns a list of elements in an item.
+   */
+  constructor(key: KeyGetter<Item>, extract: ExtractFn<Item, Element>) {
     super({value: new Map, key});
     this.extract = extract;
     this._modified = new Map;
@@ -228,7 +355,11 @@ export class Counter<Item, Element> extends KeyedCollection<Item, Map<Element, n
       if (!this._modified.has(key)) {
         this._modified.set(key, oldValue);
       }
-      this.value.set(key, oldValue + dir);
+      if (oldValue + dir <= 0) {
+        this.value.delete(key);
+      } else {
+        this.value.set(key, oldValue + dir);
+      }
     }
   }
   _buildDelta(ts: number) {
@@ -242,9 +373,9 @@ export class Counter<Item, Element> extends KeyedCollection<Item, Map<Element, n
       const n = this.value.get(key);
       if (oldN === n) {
         // this may happen when one element is moved from one item to another
-      } else if (oldN === 0) {
+      } else if (!oldN) {
         delta.added.push(key);
-      } else if (n === 0) {
+      } else if (!n) {
         delta.removed.push(key);
       } else {
         delta.updated.push(key);
@@ -252,9 +383,8 @@ export class Counter<Item, Element> extends KeyedCollection<Item, Map<Element, n
     }
     return (delta.added.length || delta.updated.length || delta.removed.length) ? delta : undefined;
   }
-  clone() {
-    // @ts-ignore
-    return new this.constructor(this.key, this.extract);
+  _args() {
+    return [this.key, this.extract];
   }
 }
 
@@ -297,17 +427,23 @@ function binarySearch<Item>(arr: Array<Item>, item: Item, cmp: (a: Item, b: Item
   return low;
 }
 
-type Stores = AnyStore<any> | [AnyStore<any>, ...AnyStore<any>[]] | AnyStore<any>[];
-type StoresValues<T> = T extends AnyStore<infer U> ? [U] :
+/** One or multiple parent stores. */
+export type Stores = AnyStore<any> | [AnyStore<any>, ...AnyStore<any>[]] | AnyStore<any>[];
+/** Values of parent stores. */
+export type StoresValues<T> = T extends AnyStore<infer U> ? [U] :
   {[K in keyof T]: T[K] extends AnyStore<infer U> ? U : never};
 
-// FIXME: what happened here? why do we need two declaration?
-// https://github.com/sveltejs/svelte/blob/master/src/runtime/store/index.ts
+/**
+ * Combine multiple stores into a new store.
+ *
+ * @param stores - A store, or a list of stores to combine.
+ * @param fn - A callback that receives stores values and return the new value of derived store.
+ */
 export function derived<S extends Stores, Value>(stores: S, fn: (...values: StoresValues<S>) => Value): Store<Value>;
 export function derived<Value>(stores: Stores, fn: (...values: any) => Value) {
   const storeArr = Array.isArray(stores) ? stores : [stores];
   const $s = new Store<Value>(get());
-  const onChange = () => $s.set(get());
+  const onChange = ({ts}: AnyDelta) => $s.set(get(), ts);
   for (const store of storeArr) {
     store.on("change", onChange);
     $s.addCleanup(() => store.off("change", onChange));
@@ -319,21 +455,28 @@ export function derived<Value>(stores: Stores, fn: (...values: any) => Value) {
   }
 }
 
-type CollectionItem<T> = T extends KeyedCollection<infer U, any> ? U : never;
-type FilterFn = (...args: any) => boolean;
-type GetCollectionDelta<T> = T extends KeyedCollection<any, any, infer U> ? U : never;
+export type ItemFromCollection<T> = T extends KeyedCollection<infer U, any> ? U : never;
+export type FilterFn = (item: any, ...args: any) => boolean;
+export type DeltaFromCollection<T> = T extends KeyedCollection<any, any, infer U> ? U : never;
 
-export function filter<C extends KeyedCollection<any, any>>(
-  $c: C, test: (item: CollectionItem<C>) => boolean): C;
+/**
+ * Create a new store that filters items in a collection.
+ *
+ * @param $c - A collection store.
+ * @param $ss - A store, or a list of stores whose values can be used as filter parameters.
+ * @param test - A callback function that returns a boolean to filter the item.
+ */
 export function filter<C extends KeyedCollection<any, any>, S extends Stores>(
-  $c: C, $ss: S, test: (item: CollectionItem<C>, ...values: StoresValues<S>) => boolean): C;
+  $c: C, $ss: S, test: (item: ItemFromCollection<C>, ...values: StoresValues<S>) => boolean): C;
+export function filter<C extends KeyedCollection<any, any>>(
+  $c: C, test: (item: ItemFromCollection<C>) => boolean): C;
 export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | FilterFn, fn?: FilterFn) {
   const $ss = Array.isArray(storesOrFn) ? storesOrFn :
     typeof storesOrFn === "function" ? [] :
     [storesOrFn];
   const test = typeof storesOrFn === "function" ? storesOrFn : fn!;
-  const $s = $c.clone() as typeof $c;
-  $s.set(get());
+  const $s = $c.clone();
+  $s.set(get(), $c.ts);
   $c.on("change", onCollectionChange);
   $s.addCleanup(() => $c.off("change", onCollectionChange));
   for (const store of $ss) {
@@ -358,15 +501,16 @@ export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | Filte
     return {added, removed};
   }
 
-  function onCollectionChange({added, updated, removed, ts}: GetCollectionDelta<typeof $c>) {
+  function onCollectionChange({added, updated, removed, ts}: DeltaFromCollection<typeof $c>) {
     const filteredAdded = [];
     const filteredRemoved = [];
     const filteredUpdated = [];
 
-    filteredAdded.push(...added.filter(test));
+    const params = $ss.map(s => s.get());
+    filteredAdded.push(...added.filter(item => test(item, ...params)));
     for (const item of updated) {
       const oldItem = $s.map.get($s.key(item));
-      if (test(item)) {
+      if (test(item, ...params)) {
         if (oldItem) {
           filteredUpdated.push(item);
         } else {
@@ -376,7 +520,7 @@ export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | Filte
         filteredRemoved.push(oldItem);
       }
     }
-    filteredRemoved.push(...removed.filter((i: CollectionItem<typeof $c>) => $s.map.has($s.key(i))));
+    filteredRemoved.push(...removed.filter((i: ItemFromCollection<typeof $c>) => $s.map.has($s.key(i))));
 
     $s.set({
       added: filteredAdded,
@@ -396,9 +540,16 @@ export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | Filte
   }
 }
 
+/**
+ * Create a new array store representing a slice of the original array store.
+ *
+ * @param $c - An array store.
+ * @param $start - A number store representing the start index.
+ * @param $end - A number store representing the end index.
+ */
 export function slice($c: ArrayStore<any>, $start: AnyStore<number>, $end: AnyStore<number>): typeof $c {
-  const $s = $c.clone() as typeof $c;
-  $s.set(get());
+  const $s = $c.clone();
+  $s.set(get(), $c.ts);
   $c.on("change", onCollectionChange);
   $s.addCleanup(() => $c.off("change", onCollectionChange));
   $start.on("change", onStoreChange);
@@ -407,7 +558,7 @@ export function slice($c: ArrayStore<any>, $start: AnyStore<number>, $end: AnySt
   $s.addCleanup(() => $end.off("change", onStoreChange));
   return $s;
 
-  function get(updatedItems: CollectionItem<typeof $c>[] = []) {
+  function get(updatedItems: ItemFromCollection<typeof $c>[] = []) {
     const oldValue = $s.get();
     const newValue = $c.get().slice($start.get(), $end.get());
     const [added, updated, removed] = diff(toMap(oldValue, $s.key), toMap(newValue, $s.key), toMap(updatedItems,
@@ -415,7 +566,7 @@ export function slice($c: ArrayStore<any>, $start: AnyStore<number>, $end: AnySt
     return {added, updated, removed};
   }
 
-  function onCollectionChange({added, updated, removed, ts}: GetCollectionDelta<typeof $c>) {
+  function onCollectionChange({added, updated, removed, ts}: DeltaFromCollection<typeof $c>) {
     if (!needRepage(added, updated, removed)) {
       return;
     }
@@ -426,11 +577,11 @@ export function slice($c: ArrayStore<any>, $start: AnyStore<number>, $end: AnySt
     $s.set(get(), ts);
   }
 
-  function needRepage(added: CollectionItem<typeof $c>, updated: CollectionItem<typeof $c>, removed: CollectionItem<typeof $c>) {
+  function needRepage(added: ItemFromCollection<typeof $c>, updated: ItemFromCollection<typeof $c>, removed: ItemFromCollection<typeof $c>) {
     if (updated.length) return true;
     if (!$s.value.length) return true;
     const lastItem = $s.value[$s.value.length - 1];
-    return [...added, ...removed].every(i => $s.cmp(i, lastItem) > 0);
+    return [...added, ...removed].some(i => $s.cmp(i, lastItem) <= 0);
   }
 }
 
@@ -438,9 +589,15 @@ function toMap(arr: Array<any>, keyFn: (item: any) => any) {
   return new Map(arr.map(i => [keyFn(i), i]));
 }
 
-export function count<Element>($c: KeyedCollection<any, any>, extract: (item: CollectionItem<typeof $c>) => Iterable<Element>) {
+/**
+ * Create a new store that counts elements from a collection.
+ *
+ * @param $c - A collection store.
+ * @param extract - A callback function that returns some elements to count.
+ */
+export function count<Element>($c: KeyedCollection<any, any>, extract: (item: ItemFromCollection<typeof $c>) => Iterable<Element>) {
   const $s = new Counter($c.key, extract);
-  $s.set(get());
+  $s.set(get(), $c.ts);
   $c.on("change", onCollectionChange);
   $s.addCleanup(() => $c.off("change", onCollectionChange));
   return $s;
@@ -451,10 +608,10 @@ export function count<Element>($c: KeyedCollection<any, any>, extract: (item: Co
     };
   }
 
-  function onCollectionChange({added, removed, updated, ts}: GetCollectionDelta<typeof $c>) {
+  function onCollectionChange({added, removed, updated, ts}: DeltaFromCollection<typeof $c>) {
     $s.set({added, removed, updated}, ts);
   }
 }
 
-// TODO: sort
+// TODO: sort?
 // export function sort($c: KeyedCollection, $cmp: AnyStore): ArrayStore
