@@ -1,6 +1,7 @@
 @eight04/store
 ===========
 
+[![.github/workflows/build.yml](https://github.com/eight04/store/actions/workflows/build.yml/badge.svg)](https://github.com/eight04/store/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/eight04/store/branch/master/graph/badge.svg)](https://codecov.io/gh/eight04/db-to-cloud)
 
 A reactive store library designed to work with large collection. Inspired by svelte/store.
