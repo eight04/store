@@ -6,7 +6,7 @@
 
 A reactive store library designed to work with large collection. Inspired by svelte/store.
 
-When some items in the collection are changed, a delta event will be broadcast, so derived stores can be updated accordingly.
+When some items in the collection are changed, a delta event will be broadcasted, so derived stores can be updated accordingly.
 
 Installation
 ------------
