@@ -70,6 +70,6 @@ API
 Changelog
 ---------
 
-* 0.1.0 ()
+* 0.1.0 (Feb 7, 2023)
 
   - First release.

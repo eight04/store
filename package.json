@@ -37,11 +37,18 @@
     "typescript": "^4.9.5"
   },
   "files": [
-    "cli.js",
-    "index.js"
+    "dist"
   ],
   "dependencies": {
     "event-lite": "^0.1.2"
   },
-  "type": "module"
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.mts"
 }

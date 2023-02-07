@@ -97,7 +97,6 @@ describe("filter", () => {
       ]
     });
     assert.equal(n, 5);
-    console.log($s.get())
     assert.equal($s.get().size, 5);
 
     n = 0;
