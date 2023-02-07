@@ -51,7 +51,7 @@ The basic delta for primitive stores.
 
 #### Defined in
 
-[index.mts:38](https://github.com/eight04/store/blob/38161dc/index.mts#L38)
+[index.mts:38](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L38)
 
 ___
 
@@ -84,7 +84,7 @@ Compare two items. Returns negative if a < b, returns positive if a > b, returns
 
 #### Defined in
 
-[index.mts:262](https://github.com/eight04/store/blob/38161dc/index.mts#L262)
+[index.mts:262](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L262)
 
 ___
 
@@ -111,7 +111,7 @@ Delta for collection store.
 
 #### Defined in
 
-[index.mts:163](https://github.com/eight04/store/blob/38161dc/index.mts#L163)
+[index.mts:163](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L163)
 
 ___
 
@@ -137,7 +137,7 @@ Add, update, and remove items in a collection.
 
 #### Defined in
 
-[index.mts:151](https://github.com/eight04/store/blob/38161dc/index.mts#L151)
+[index.mts:151](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L151)
 
 ___
 
@@ -170,7 +170,7 @@ Extract elements from an item.
 
 #### Defined in
 
-[index.mts:302](https://github.com/eight04/store/blob/38161dc/index.mts#L302)
+[index.mts:302](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L302)
 
 ___
 
@@ -202,7 +202,7 @@ Returns the key of the item.
 
 #### Defined in
 
-[index.mts:146](https://github.com/eight04/store/blob/38161dc/index.mts#L146)
+[index.mts:146](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L146)
 
 ___
 
@@ -214,7 +214,7 @@ One or multiple parent stores.
 
 #### Defined in
 
-[index.mts:431](https://github.com/eight04/store/blob/38161dc/index.mts#L431)
+[index.mts:431](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L431)
 
 ___
 
@@ -232,7 +232,7 @@ Values of parent stores.
 
 #### Defined in
 
-[index.mts:433](https://github.com/eight04/store/blob/38161dc/index.mts#L433)
+[index.mts:433](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L433)
 
 ## Functions
 
@@ -261,7 +261,7 @@ Create a new store that counts elements from a collection.
 
 #### Defined in
 
-[index.mts:598](https://github.com/eight04/store/blob/38161dc/index.mts#L598)
+[index.mts:598](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L598)
 
 ___
 
@@ -291,7 +291,7 @@ Combine multiple stores into a new store.
 
 #### Defined in
 
-[index.mts:442](https://github.com/eight04/store/blob/38161dc/index.mts#L442)
+[index.mts:442](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L442)
 
 ___
 
@@ -322,7 +322,7 @@ Create a new store that filters items in a collection.
 
 #### Defined in
 
-[index.mts:469](https://github.com/eight04/store/blob/38161dc/index.mts#L469)
+[index.mts:469](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L469)
 
 ___
 
@@ -346,4 +346,4 @@ typeof `$c`
 
 #### Defined in
 
-[index.mts:550](https://github.com/eight04/store/blob/38161dc/index.mts#L550)
+[index.mts:550](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L550)
