@@ -17,7 +17,7 @@
     "build": "tsc --project tsconfig.build.json",
     "build-doc": "typedoc",
     "preversion": "npm test -- --max-warnings 0",
-    "version": "npm run build && git add .",
+    "version": "npm run build && npm run build-doc && git add .",
     "postversion": "git push --follow-tags && npm publish --access public",
     "cover": "c8 report --reporter=html && start-browser coverage/index.html"
   },
