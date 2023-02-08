@@ -296,98 +296,6 @@ export class ArrayStore<Item> extends KeyedCollection<Item, Array<Item>> {
   }
 }
 
-/**
- * Extract elements from an item.
- */
-export type ExtractFn<Item, Element> = (item: Item) => Iterable<Element>;
-
-/**
- * A store that counts elements in a collection.
- *
- * The value is an element-number map.
- *
- * The delta contains elements instead of items.
- *
- * @example
- * To count tags of a set of articles:
- * ```js
- * const $c = new Counter(i => i.id, i => i.tags);
- * $c.set({
- *  added: [
- *    {id: 1, tags: ["foo", "bar"]},
- *    {id: 2, tags: ["bar", "baz"]}
- *    {id: 3, tags: ["foo"]}
- *  ]
- * });
- * $c.get() // Map { "foo" -> 2, "bar" -> 2, "baz" -> 1 }
- * $c.getDelta() // { added: ["foo", "bar", "baz"], updated: [], removed: [], ts: ... }
- * ```
- */
-export class Counter<Item, Element> extends KeyedCollection<Item, Map<Element, number>, CollectionDelta<Element>> {
-  extract: ExtractFn<Item, Element>;
-  _modified: Map<Element, number>;
-  /**
-   * @param key - Returns the key of the item.
-   * @param extract - Returns a list of elements in an item.
-   */
-  constructor(key: KeyGetter<Item>, extract: ExtractFn<Item, Element>) {
-    super({value: new Map, key});
-    this.extract = extract;
-    this._modified = new Map;
-  }
-  _set(delta: CollectionSetParam<Item>, ts: number) {
-    this._modified.clear();
-    SetStore.prototype._set.call(this, delta, ts);
-    return this._buildDelta(ts);
-  }
-  _addItem(item: Item) {
-    this._count(item, 1);
-  }
-  _removeItem(item: Item) {
-    this._count(item, -1);
-  }
-  _count(item: Item, dir: number) {
-    // FIXME: should we cache extracted elements?
-    // if elements are modified in-place i.e. oldItem === item,
-    // we won't be able to extract them from oldItem
-    for (const key of this.extract(item)) {
-      const oldValue = this.value.get(key) || 0;
-      if (!this._modified.has(key)) {
-        this._modified.set(key, oldValue);
-      }
-      if (oldValue + dir <= 0) {
-        this.value.delete(key);
-      } else {
-        this.value.set(key, oldValue + dir);
-      }
-    }
-  }
-  _buildDelta(ts: number) {
-    const delta: CollectionDelta<Element> = {
-      added: [],
-      removed: [],
-      updated: [],
-      ts
-    };
-    for (const [key, oldN] of this._modified) {
-      const n = this.value.get(key);
-      if (oldN === n) {
-        // this may happen when one element is moved from one item to another
-      } else if (!oldN) {
-        delta.added.push(key);
-      } else if (!n) {
-        delta.removed.push(key);
-      } else {
-        delta.updated.push(key);
-      }
-    }
-    return (delta.added.length || delta.updated.length || delta.removed.length) ? delta : undefined;
-  }
-  _args() {
-    return [this.key, this.extract];
-  }
-}
-
 function diff<Item>(mapA: Map<any, Item>, mapB: Map<any, Item>, updateFilter?: {has(item: Item): boolean}) {
   const allKeys = new Set([...mapA.keys(), ...mapB.keys()]);
   const added = [];
@@ -595,23 +503,118 @@ function toMap(arr: Array<any>, keyFn: (item: any) => any) {
  * @param $c - A collection store.
  * @param extract - A callback function that returns some elements to count.
  */
-export function count<Element>($c: KeyedCollection<any, any>, extract: (item: ItemFromCollection<typeof $c>) => Iterable<Element>) {
-  const $s = new Counter($c.key, extract);
-  $s.set(get(), $c.ts);
+export function count<Element>(
+  $c: KeyedCollection<any, any>,
+  extract: (item: ItemFromCollection<typeof $c>) => Iterable<Element>
+): SetStore<[Element, number]> {
+  const $s = new SetStore<[Element, number]>(t => t[0]);
+  const cache: Map<ReturnType<typeof $c.key>, Element[]> = new Map;
+  onCollectionChange({
+    added: $c.get(),
+    updated: [],
+    removed: [],
+    ts: $c.ts
+  });
   $c.on("change", onCollectionChange);
   $s.addCleanup(() => $c.off("change", onCollectionChange));
   return $s;
 
-  function get() {
-    return {
-      added: $c.get(),
-    };
+  function onCollectionChange({added, removed, updated, ts}: DeltaFromCollection<typeof $c>) {
+    const modified = new Map;
+    for (const item of [...removed, ...updated]) {
+      const key = $c.key(item);
+      const oldElements = cache.get(key)!;
+      for (const el of oldElements) {
+        modified.set(el, (modified.get(el) || 0) - 1);
+      }
+      cache.delete(key);
+    }
+    for (const item of [...updated, ...added]) {
+      const key = $c.key(item);
+      const elements = [...extract(item)];
+      for (const el of elements) {
+        modified.set(el, (modified.get(el) || 0) + 1);
+      }
+      cache.set(key, elements);
+    }
+    applyChange(modified, ts);
   }
 
-  function onCollectionChange({added, removed, updated, ts}: DeltaFromCollection<typeof $c>) {
+  function applyChange(modified: Map<Element, number>, ts: number) {
+    const added = [];
+    const removed = [];
+    const updated = [];
+    for (const [el, n] of modified) {
+      if (!n) continue;
+      const oldN = $s.map.has(el) ? $s.map.get(el)![1] : 0;
+      if (oldN + n <= 0) {
+        removed.push([el, oldN] as [Element, number]);
+      } else if (oldN > 0) {
+        updated.push([el, oldN + n] as [Element, number]);
+      } else {
+        added.push([el, n] as [Element, number]);
+      }
+    }
     $s.set({added, removed, updated}, ts);
   }
 }
 
-// TODO: sort?
-// export function sort($c: KeyedCollection, $cmp: AnyStore): ArrayStore
+/**
+ * Create a new collection with derived items.
+ *
+ * @param key - The key getter for the new item.
+ * @param map - A callback function that transform an old item into a new one.
+ */
+export function map<NewItem>(
+  $c: KeyedCollection<any, any>,
+  key: KeyGetter<NewItem>,
+  map: (item: ItemFromCollection<typeof $c>) => NewItem,
+) {
+  const $s = $c.clone();
+  $c.key = key;
+  onChange({
+    added: [...$c.get()],
+    updated: [],
+    removed: [],
+    ts: $c.ts
+  });
+  $c.on("change", onChange);
+  $s.addCleanup(() => $c.off("change", onChange));
+  return $s;
+
+  function onChange({added, updated, removed, ts}: CollectionDelta<ItemFromCollection<typeof $c>>) {
+    $s.set({
+      added: added.map(map),
+      updated: updated.map(map),
+      removed: removed.map(map),
+    }, ts);
+  }
+}
+
+/**
+ * Create a new array store from a collection.
+ */
+export function sort<Item>(
+  $c: KeyedCollection<Item, any>,
+  cmp: CmpFn<Item>,
+) {
+  const $s = new ArrayStore<Item>($c.key, cmp);
+  onChange({
+    added: $c.get(),
+    updated: [],
+    removed: [],
+    ts: $c.ts
+  });
+  $c.on("change", onChange);
+  $s.addCleanup(() => $c.off("change", onChange));
+  return $s;
+
+  function onChange({added, updated, removed, ts}: CollectionDelta<ItemFromCollection<typeof $c>>) {
+    $s.set({
+      added,
+      updated,
+      removed,
+    }, ts);
+  }
+}
+
