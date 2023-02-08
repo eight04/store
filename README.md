@@ -71,6 +71,11 @@ API
 Changelog
 ---------
 
+* 0.2.0 (Feb 9, 2023)
+
+  - Add: `map`, `sort`.
+  - Drop `Counter`.
+
 * 0.1.0 (Feb 7, 2023)
 
   - First release.
