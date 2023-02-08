@@ -22,8 +22,6 @@ An abstracted base class for any keyed-collection.
 
   ↳↳ [`ArrayStore`](ArrayStore.md)
 
-  ↳↳ [`Counter`](Counter.md)
-
 ## Table of contents
 
 ### Properties
@@ -50,7 +48,7 @@ A key-item map.
 
 #### Defined in
 
-[index.mts:182](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L182)
+[index.mts:182](https://github.com/eight04/store/blob/7cf3998/index.mts#L182)
 
 ## Methods
 
@@ -76,7 +74,7 @@ Add a cleanup function which will be called when the store is destroyed.
 
 #### Defined in
 
-[index.mts:138](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L138)
+[index.mts:138](https://github.com/eight04/store/blob/7cf3998/index.mts#L138)
 
 ___
 
@@ -96,7 +94,7 @@ Clone the store.
 
 #### Defined in
 
-[index.mts:130](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L130)
+[index.mts:130](https://github.com/eight04/store/blob/7cf3998/index.mts#L130)
 
 ___
 
@@ -118,7 +116,7 @@ This function removes event listeners attached to parent stores.
 
 #### Defined in
 
-[index.mts:118](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L118)
+[index.mts:118](https://github.com/eight04/store/blob/7cf3998/index.mts#L118)
 
 ___
 
@@ -138,7 +136,7 @@ Get the value.
 
 #### Defined in
 
-[index.mts:104](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L104)
+[index.mts:104](https://github.com/eight04/store/blob/7cf3998/index.mts#L104)
 
 ___
 
@@ -158,7 +156,7 @@ Get the latest delta.
 
 #### Defined in
 
-[index.mts:110](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L110)
+[index.mts:110](https://github.com/eight04/store/blob/7cf3998/index.mts#L110)
 
 ___
 
@@ -185,7 +183,7 @@ Update the store
 
 #### Defined in
 
-[index.mts:79](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L79)
+[index.mts:79](https://github.com/eight04/store/blob/7cf3998/index.mts#L79)
 
 ___
 
@@ -211,4 +209,4 @@ Set with an async function. You may want to use this function to update store wi
 
 #### Defined in
 
-[index.mts:94](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L94)
+[index.mts:94](https://github.com/eight04/store/blob/7cf3998/index.mts#L94)

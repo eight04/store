@@ -7,7 +7,6 @@
 ### Classes
 
 - [ArrayStore](classes/ArrayStore.md)
-- [Counter](classes/Counter.md)
 - [KeyedCollection](classes/KeyedCollection.md)
 - [SetStore](classes/SetStore.md)
 - [Store](classes/Store.md)
@@ -23,7 +22,6 @@
 - [CmpFn](README.md#cmpfn)
 - [CollectionDelta](README.md#collectiondelta)
 - [CollectionSetParam](README.md#collectionsetparam)
-- [ExtractFn](README.md#extractfn)
 - [KeyGetter](README.md#keygetter)
 - [Stores](README.md#stores)
 - [StoresValues](README.md#storesvalues)
@@ -33,7 +31,9 @@
 - [count](README.md#count)
 - [derived](README.md#derived)
 - [filter](README.md#filter)
+- [map](README.md#map)
 - [slice](README.md#slice)
+- [sort](README.md#sort)
 
 ## Type Aliases
 
@@ -51,7 +51,7 @@ The basic delta for primitive stores.
 
 #### Defined in
 
-[index.mts:38](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L38)
+[index.mts:38](https://github.com/eight04/store/blob/7cf3998/index.mts#L38)
 
 ___
 
@@ -84,7 +84,7 @@ Compare two items. Returns negative if a < b, returns positive if a > b, returns
 
 #### Defined in
 
-[index.mts:262](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L262)
+[index.mts:262](https://github.com/eight04/store/blob/7cf3998/index.mts#L262)
 
 ___
 
@@ -111,7 +111,7 @@ Delta for collection store.
 
 #### Defined in
 
-[index.mts:163](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L163)
+[index.mts:163](https://github.com/eight04/store/blob/7cf3998/index.mts#L163)
 
 ___
 
@@ -137,40 +137,7 @@ Add, update, and remove items in a collection.
 
 #### Defined in
 
-[index.mts:151](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L151)
-
-___
-
-### ExtractFn
-
-Ƭ **ExtractFn**<`Item`, `Element`\>: (`item`: `Item`) => `Iterable`<`Element`\>
-
-#### Type parameters
-
-| Name |
-| :------ |
-| `Item` |
-| `Element` |
-
-#### Type declaration
-
-▸ (`item`): `Iterable`<`Element`\>
-
-Extract elements from an item.
-
-##### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `item` | `Item` |
-
-##### Returns
-
-`Iterable`<`Element`\>
-
-#### Defined in
-
-[index.mts:302](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L302)
+[index.mts:151](https://github.com/eight04/store/blob/7cf3998/index.mts#L151)
 
 ___
 
@@ -202,7 +169,7 @@ Returns the key of the item.
 
 #### Defined in
 
-[index.mts:146](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L146)
+[index.mts:146](https://github.com/eight04/store/blob/7cf3998/index.mts#L146)
 
 ___
 
@@ -214,7 +181,7 @@ One or multiple parent stores.
 
 #### Defined in
 
-[index.mts:431](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L431)
+[index.mts:339](https://github.com/eight04/store/blob/7cf3998/index.mts#L339)
 
 ___
 
@@ -232,13 +199,13 @@ Values of parent stores.
 
 #### Defined in
 
-[index.mts:433](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L433)
+[index.mts:341](https://github.com/eight04/store/blob/7cf3998/index.mts#L341)
 
 ## Functions
 
 ### count
 
-▸ **count**<`Element`\>(`$c`, `extract`): [`Counter`](classes/Counter.md)<`any`, `Element`\>
+▸ **count**<`Element`\>(`$c`, `extract`): [`SetStore`](classes/SetStore.md)<[`Element`, `number`]\>
 
 Create a new store that counts elements from a collection.
 
@@ -257,11 +224,11 @@ Create a new store that counts elements from a collection.
 
 #### Returns
 
-[`Counter`](classes/Counter.md)<`any`, `Element`\>
+[`SetStore`](classes/SetStore.md)<[`Element`, `number`]\>
 
 #### Defined in
 
-[index.mts:598](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L598)
+[index.mts:506](https://github.com/eight04/store/blob/7cf3998/index.mts#L506)
 
 ___
 
@@ -291,7 +258,7 @@ Combine multiple stores into a new store.
 
 #### Defined in
 
-[index.mts:442](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L442)
+[index.mts:350](https://github.com/eight04/store/blob/7cf3998/index.mts#L350)
 
 ___
 
@@ -322,7 +289,37 @@ Create a new store that filters items in a collection.
 
 #### Defined in
 
-[index.mts:469](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L469)
+[index.mts:377](https://github.com/eight04/store/blob/7cf3998/index.mts#L377)
+
+___
+
+### map
+
+▸ **map**<`NewItem`\>(`$c`, `key`, `map`): [`KeyedCollection`](classes/KeyedCollection.md)<`any`, `any`, [`CollectionDelta`](README.md#collectiondelta)<`any`\>\>
+
+Create a new collection with derived items.
+
+#### Type parameters
+
+| Name |
+| :------ |
+| `NewItem` |
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `$c` | [`KeyedCollection`](classes/KeyedCollection.md)<`any`, `any`, [`CollectionDelta`](README.md#collectiondelta)<`any`\>\> | - |
+| `key` | [`KeyGetter`](README.md#keygetter)<`NewItem`\> | The key getter for the new item. |
+| `map` | (`item`: `any`) => `NewItem` | A callback function that transform an old item into a new one. |
+
+#### Returns
+
+[`KeyedCollection`](classes/KeyedCollection.md)<`any`, `any`, [`CollectionDelta`](README.md#collectiondelta)<`any`\>\>
+
+#### Defined in
+
+[index.mts:568](https://github.com/eight04/store/blob/7cf3998/index.mts#L568)
 
 ___
 
@@ -346,4 +343,33 @@ typeof `$c`
 
 #### Defined in
 
-[index.mts:550](https://github.com/eight04/store/blob/7fa3f8a/index.mts#L550)
+[index.mts:458](https://github.com/eight04/store/blob/7cf3998/index.mts#L458)
+
+___
+
+### sort
+
+▸ **sort**<`Item`\>(`$c`, `cmp`): [`ArrayStore`](classes/ArrayStore.md)<`Item`\>
+
+Create a new array store from a collection.
+
+#### Type parameters
+
+| Name |
+| :------ |
+| `Item` |
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `$c` | [`KeyedCollection`](classes/KeyedCollection.md)<`Item`, `any`, [`CollectionDelta`](README.md#collectiondelta)<`Item`\>\> |
+| `cmp` | [`CmpFn`](README.md#cmpfn)<`Item`\> |
+
+#### Returns
+
+[`ArrayStore`](classes/ArrayStore.md)<`Item`\>
+
+#### Defined in
+
+[index.mts:597](https://github.com/eight04/store/blob/7cf3998/index.mts#L597)
