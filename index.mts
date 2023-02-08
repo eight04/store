@@ -596,6 +596,7 @@ export function map<NewItem>(
  */
 export function sort<Item>(
   $c: KeyedCollection<Item, any>,
+  // FIXME: ability to use a reactive store for cmp?
   cmp: CmpFn<Item>,
 ) {
   const $s = new ArrayStore<Item>($c.key, cmp);
