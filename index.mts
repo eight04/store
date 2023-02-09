@@ -571,7 +571,7 @@ export function map<NewItem>(
   map: (item: ItemFromCollection<typeof $c>) => NewItem,
 ) {
   const $s = $c.clone();
-  $c.key = key;
+  $s.key = key;
   onChange({
     added: [...$c.get()],
     updated: [],

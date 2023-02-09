@@ -62,3 +62,25 @@ describe("map", () => {
     ]);
   });
 });
+
+it("new shape", () => {
+  const $a = new SetStore<Item>(i => i.id);
+  const $b = map<Item>(
+    $a,
+    i => i,
+    i => i.id
+  );
+  $a.set({
+    added: [
+      new Item(1, 1),
+      new Item(2, 10),
+      new Item(3, -10),
+      new Item(4, -20),
+      new Item(5, 30),
+    ]
+  });
+  assert.deepStrictEqual($b.get(), new Set([
+    1, 2, 3, 4, 5
+  ]));
+});
+
