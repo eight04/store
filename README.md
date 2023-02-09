@@ -71,6 +71,10 @@ API
 Changelog
 ---------
 
+* 0.2.1 (Feb 9, 2023)
+
+  - Fix: `map` error when key is changed.
+
 * 0.2.0 (Feb 9, 2023)
 
   - Add: `map`, `sort`.
