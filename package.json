@@ -1,6 +1,6 @@
 {
   "name": "@eight04/store",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Reactive store aims to work with collection",
   "author": "eight04 <eight04@gmail.com>",
   "license": "MIT",
