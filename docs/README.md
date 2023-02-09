@@ -51,7 +51,7 @@ The basic delta for primitive stores.
 
 #### Defined in
 
-[index.mts:38](https://github.com/eight04/store/blob/aa9ab89/index.mts#L38)
+[index.mts:38](https://github.com/eight04/store/blob/390ae2f/index.mts#L38)
 
 ___
 
@@ -84,7 +84,7 @@ Compare two items. Returns negative if a < b, returns positive if a > b, returns
 
 #### Defined in
 
-[index.mts:262](https://github.com/eight04/store/blob/aa9ab89/index.mts#L262)
+[index.mts:262](https://github.com/eight04/store/blob/390ae2f/index.mts#L262)
 
 ___
 
@@ -111,7 +111,7 @@ Delta for collection store.
 
 #### Defined in
 
-[index.mts:163](https://github.com/eight04/store/blob/aa9ab89/index.mts#L163)
+[index.mts:163](https://github.com/eight04/store/blob/390ae2f/index.mts#L163)
 
 ___
 
@@ -137,7 +137,7 @@ Add, update, and remove items in a collection.
 
 #### Defined in
 
-[index.mts:151](https://github.com/eight04/store/blob/aa9ab89/index.mts#L151)
+[index.mts:151](https://github.com/eight04/store/blob/390ae2f/index.mts#L151)
 
 ___
 
@@ -169,7 +169,7 @@ Returns the key of the item.
 
 #### Defined in
 
-[index.mts:146](https://github.com/eight04/store/blob/aa9ab89/index.mts#L146)
+[index.mts:146](https://github.com/eight04/store/blob/390ae2f/index.mts#L146)
 
 ___
 
@@ -181,7 +181,7 @@ One or multiple parent stores.
 
 #### Defined in
 
-[index.mts:339](https://github.com/eight04/store/blob/aa9ab89/index.mts#L339)
+[index.mts:339](https://github.com/eight04/store/blob/390ae2f/index.mts#L339)
 
 ___
 
@@ -199,13 +199,13 @@ Values of parent stores.
 
 #### Defined in
 
-[index.mts:341](https://github.com/eight04/store/blob/aa9ab89/index.mts#L341)
+[index.mts:341](https://github.com/eight04/store/blob/390ae2f/index.mts#L341)
 
 ## Functions
 
 ### count
 
-▸ **count**<`Element`\>(`$c`, `extract`): [`SetStore`](classes/SetStore.md)<[`Element`, `number`]\>
+▸ **count**<`Element`\>(`$c`, `extract`): [`SetStore`](classes/SetStore.md)<readonly [`Element`, `number`]\>
 
 Create a new store that counts elements from a collection.
 
@@ -224,11 +224,11 @@ Create a new store that counts elements from a collection.
 
 #### Returns
 
-[`SetStore`](classes/SetStore.md)<[`Element`, `number`]\>
+[`SetStore`](classes/SetStore.md)<readonly [`Element`, `number`]\>
 
 #### Defined in
 
-[index.mts:506](https://github.com/eight04/store/blob/aa9ab89/index.mts#L506)
+[index.mts:503](https://github.com/eight04/store/blob/390ae2f/index.mts#L503)
 
 ___
 
@@ -258,7 +258,7 @@ Combine multiple stores into a new store.
 
 #### Defined in
 
-[index.mts:350](https://github.com/eight04/store/blob/aa9ab89/index.mts#L350)
+[index.mts:350](https://github.com/eight04/store/blob/390ae2f/index.mts#L350)
 
 ___
 
@@ -289,7 +289,7 @@ Create a new store that filters items in a collection.
 
 #### Defined in
 
-[index.mts:377](https://github.com/eight04/store/blob/aa9ab89/index.mts#L377)
+[index.mts:377](https://github.com/eight04/store/blob/390ae2f/index.mts#L377)
 
 ___
 
@@ -319,13 +319,13 @@ Create a new collection with derived items.
 
 #### Defined in
 
-[index.mts:568](https://github.com/eight04/store/blob/aa9ab89/index.mts#L568)
+[index.mts:565](https://github.com/eight04/store/blob/390ae2f/index.mts#L565)
 
 ___
 
 ### slice
 
-▸ **slice**(`$c`, `$start`, `$end`): typeof `$c`
+▸ **slice**(`$c`, `$range`): typeof `$c`
 
 Create a new array store representing a slice of the original array store.
 
@@ -334,8 +334,7 @@ Create a new array store representing a slice of the original array store.
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `$c` | [`ArrayStore`](classes/ArrayStore.md)<`any`\> | An array store. |
-| `$start` | [`AnyStore`](interfaces/AnyStore.md)<`number`\> | A number store representing the start index. |
-| `$end` | [`AnyStore`](interfaces/AnyStore.md)<`number`\> | A number store representing the end index. |
+| `$range` | [`Store`](classes/Store.md)<readonly [`number`, `number`], [`BasicDelta`](README.md#basicdelta)<readonly [`number`, `number`]\>, readonly [`number`, `number`]\> | A tuple store representing [startIndex, endIndex] |
 
 #### Returns
 
@@ -343,7 +342,7 @@ typeof `$c`
 
 #### Defined in
 
-[index.mts:458](https://github.com/eight04/store/blob/aa9ab89/index.mts#L458)
+[index.mts:457](https://github.com/eight04/store/blob/390ae2f/index.mts#L457)
 
 ___
 
@@ -372,4 +371,4 @@ Create a new array store from a collection.
 
 #### Defined in
 
-[index.mts:597](https://github.com/eight04/store/blob/aa9ab89/index.mts#L597)
+[index.mts:594](https://github.com/eight04/store/blob/390ae2f/index.mts#L594)
