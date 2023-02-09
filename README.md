@@ -71,6 +71,10 @@ API
 Changelog
 ---------
 
+* 0.3.0 (Feb, 10, 2023)
+
+  - Change: `slice` now accepts a single `$range` store.
+
 * 0.2.1 (Feb 9, 2023)
 
   - Fix: `map` error when key is changed.
