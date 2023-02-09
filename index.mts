@@ -452,23 +452,20 @@ export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | Filte
  * Create a new array store representing a slice of the original array store.
  *
  * @param $c - An array store.
- * @param $start - A number store representing the start index.
- * @param $end - A number store representing the end index.
+ * @param $range - A tuple store representing [startIndex, endIndex]
  */
-export function slice($c: ArrayStore<any>, $start: AnyStore<number>, $end: AnyStore<number>): typeof $c {
+export function slice($c: ArrayStore<any>, $range: Store<readonly [number, number]>): typeof $c {
   const $s = $c.clone();
   $s.set(get(), $c.ts);
   $c.on("change", onCollectionChange);
   $s.addCleanup(() => $c.off("change", onCollectionChange));
-  $start.on("change", onStoreChange);
-  $s.addCleanup(() => $start.off("change", onStoreChange));
-  $end.on("change", onStoreChange);
-  $s.addCleanup(() => $end.off("change", onStoreChange));
+  $range.on("change", onStoreChange);
+  $s.addCleanup(() => $range.off("change", onStoreChange));
   return $s;
 
   function get(updatedItems: ItemFromCollection<typeof $c>[] = []) {
     const oldValue = $s.get();
-    const newValue = $c.get().slice($start.get(), $end.get());
+    const newValue = $c.get().slice(...$range.get());
     const [added, updated, removed] = diff(toMap(oldValue, $s.key), toMap(newValue, $s.key), toMap(updatedItems,
       $s.key));
     return {added, updated, removed};
@@ -506,8 +503,8 @@ function toMap(arr: Array<any>, keyFn: (item: any) => any) {
 export function count<Element>(
   $c: KeyedCollection<any, any>,
   extract: (item: ItemFromCollection<typeof $c>) => Iterable<Element>
-): SetStore<[Element, number]> {
-  const $s = new SetStore<[Element, number]>(t => t[0]);
+) {
+  const $s = new SetStore<readonly [Element, number]>(t => t[0]);
   const cache: Map<ReturnType<typeof $c.key>, Element[]> = new Map;
   onCollectionChange({
     added: $c.get(),
@@ -548,11 +545,11 @@ export function count<Element>(
       if (!n) continue;
       const oldN = $s.map.has(el) ? $s.map.get(el)![1] : 0;
       if (oldN + n <= 0) {
-        removed.push([el, oldN] as [Element, number]);
+        removed.push([el, oldN] as const);
       } else if (oldN > 0) {
-        updated.push([el, oldN + n] as [Element, number]);
+        updated.push([el, oldN + n] as const);
       } else {
-        added.push([el, n] as [Element, number]);
+        added.push([el, n] as const);
       }
     }
     $s.set({added, removed, updated}, ts);

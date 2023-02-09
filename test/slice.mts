@@ -19,8 +19,8 @@ describe("slice", () => {
   it("basic", () => {
     const $a = new ArrayStore<Item>(i => i.id, cmp);
     const $start = new Store<number>(0);
-    const $end = derived($start, s => s + 3);
-    const $b = slice($a, $start, $end);
+    const $range = derived($start, s => [s, s + 3] as const);
+    const $b = slice($a, $range);
     assert.deepStrictEqual($b.get(), []);
     $a.set({
       added: [
