@@ -35,7 +35,7 @@ describe("ArrayStore", () => {
 
   it("filter", () => {
     const $a = new ArrayStore<Item>(i => i.id, cmp);
-    const $b = filter($a, i => i.value > 0);
+    const $b = filter($a, [], i => i.value > 0);
     $a.set({
       added: [
         new Item(1, 1),
@@ -55,7 +55,11 @@ describe("ArrayStore", () => {
   it("filter with store", () => {
     const $a = new ArrayStore<Item>(i => i.id, cmp);
     const $b = new Store<number>(0);
-    const $c = filter($a, $b, (i, b) => i.value > b);
+    const $c = filter(
+      $a, 
+      [{store: $b}],
+      (i, b) => i.value > b
+    );
     $a.set({
       added: [
         new Item(1, 1),

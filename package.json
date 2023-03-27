@@ -19,7 +19,8 @@
     "preversion": "npm test -- --max-warnings 0",
     "version": "npm run build && npm run build-doc && git add .",
     "postversion": "git push --follow-tags && npm publish --access public",
-    "cover": "c8 report --reporter=html && start-browser coverage/index.html"
+    "cover": "c8 report --reporter=html && start-browser coverage/index.html",
+    "cover-lcov": "c8 report --reporter=lcov"
   },
   "devDependencies": {
     "@eight04/start-browser": "^0.2.1",
