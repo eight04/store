@@ -1,13 +1,23 @@
 import Events from "event-lite";
 
 /**
+ * An interface representing any delta event.
+ */
+export interface AnyDelta {
+  /**
+   * The timestamp of the change event.
+   */
+  ts: number;
+}
+
+/**
  * An interface represents a valid store.
  *
  * Basically, a store has to be able to set/get value and emit a "change" event when value changes.
  */
-export interface AnyStore<Value> {
+export interface AnyStore<Value, Delta extends AnyDelta> {
   /** Register an event listener. */
-  on(event: string, ...args: any[]): void;
+  on(event: "change", callback: (delta: Delta) => void): void;
   /** Remove an event listener. */
   off(event: string, ...args: any[]): void;
   /** Set a new value. */
@@ -22,15 +32,6 @@ export interface AnyStore<Value> {
   clone(): this;
 }
 
-/**
- * An interface representing any delta event.
- */
-export interface AnyDelta {
-  /**
-   * The timestamp of the change event.
-   */
-  ts: number;
-}
 
 /**
  * The basic delta for primitive stores.
@@ -45,7 +46,7 @@ export type BasicDelta<Value> = AnyDelta & {
 /**
  * The base class of reactive store.
  */
-export class Store<Value, Delta = BasicDelta<Value>, SetParam = Value> extends Events implements AnyStore<Value> {
+export class Store<Value, Delta extends AnyDelta = BasicDelta<Value>, SetParam = Value> extends Events implements AnyStore<Value, Delta> {
   value: Value;
   delta?: Delta;
   ts: number;
@@ -336,10 +337,10 @@ function binarySearch<Item>(arr: Array<Item>, item: Item, cmp: (a: Item, b: Item
 }
 
 /** One or multiple parent stores. */
-export type Stores = AnyStore<any> | [AnyStore<any>, ...AnyStore<any>[]] | AnyStore<any>[];
+export type Stores = AnyStore<any, AnyDelta> | AnyStore<any, AnyDelta>[];
 /** Values of parent stores. */
-export type StoresValues<T> = T extends AnyStore<infer U> ? [U] :
-  {[K in keyof T]: T[K] extends AnyStore<infer U> ? U : never};
+export type StoresValues<T> = T extends AnyStore<infer U, AnyDelta> ? [U] :
+  {[K in keyof T]: T[K] extends AnyStore<infer U, AnyDelta> ? U : never};
 
 /**
  * Combine multiple stores into a new store.
@@ -347,8 +348,7 @@ export type StoresValues<T> = T extends AnyStore<infer U> ? [U] :
  * @param stores - A store, or a list of stores to combine.
  * @param fn - A callback that receives stores values and return the new value of derived store.
  */
-export function derived<S extends Stores, Value>(stores: S, fn: (...values: StoresValues<S>) => Value): Store<Value>;
-export function derived<Value>(stores: Stores, fn: (...values: any) => Value) {
+export function derived<S extends Stores, Value>(stores: S, fn: (...values: StoresValues<S>) => Value): Store<Value> {
   const storeArr = Array.isArray(stores) ? stores : [stores];
   const $s = new Store<Value>(get());
   const onChange = ({ts}: AnyDelta) => $s.set(get(), ts);
@@ -359,47 +359,65 @@ export function derived<Value>(stores: Stores, fn: (...values: any) => Value) {
   return $s;
 
   function get() {
-    return fn(...storeArr.map(s => s.get()));
+    const params = storeArr.map(s => s.get()) as StoresValues<S>;
+    return fn(...params);
   }
 }
 
 export type ItemFromCollection<T> = T extends KeyedCollection<infer U, any> ? U : never;
-export type FilterFn = (item: any, ...args: any) => boolean;
 export type DeltaFromCollection<T> = T extends KeyedCollection<any, any, infer U> ? U : never;
+export type DeltaFromStore<T> = T extends AnyStore<any, infer U> ? U : never;
+export type FilterParam<T extends AnyStore<any, any>> = {
+  store: T,
+  incremental?: (delta: DeltaFromStore<T>) => boolean
+};
+export type ValuesFromFilterParams<T> = {
+  [K in keyof T]: T[K] extends {store: AnyStore<infer U, any>} ? U : never
+};
 
 /**
  * Create a new store that filters items in a collection.
  *
  * @param $c - A collection store.
- * @param $ss - A store, or a list of stores whose values can be used as filter parameters.
+ * @param params - A list of parameters that can be used in the test function.
+ * @param params[].store - Any store.
+ * @param params[].incremental - When this function returns true, the change from the parameter will be treated as "incremental" i.e.
+ *  the function will only execute the test on filtered items.
  * @param test - A callback function that returns a boolean to filter the item.
  */
-export function filter<C extends KeyedCollection<any, any>, S extends Stores>(
-  $c: C, $ss: S, test: (item: ItemFromCollection<C>, ...values: StoresValues<S>) => boolean): C;
-export function filter<C extends KeyedCollection<any, any>>(
-  $c: C, test: (item: ItemFromCollection<C>) => boolean): C;
-export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | FilterFn, fn?: FilterFn) {
-  const $ss = Array.isArray(storesOrFn) ? storesOrFn :
-    typeof storesOrFn === "function" ? [] :
-    [storesOrFn];
-  const test = typeof storesOrFn === "function" ? storesOrFn : fn!;
+export function filter<C extends KeyedCollection<any, any>, S extends FilterParam<AnyStore<any, any>>[]>(
+  $c: C,
+  params: S,
+  test: (item: ItemFromCollection<C>, ...values: ValuesFromFilterParams<S>) => boolean
+): C {
   const $s = $c.clone();
   $s.set(get(), $c.ts);
   $c.on("change", onCollectionChange);
   $s.addCleanup(() => $c.off("change", onCollectionChange));
-  for (const store of $ss) {
-    store.on("change", onStoreChange);
-    $s.addCleanup(() => store.off("change", onStoreChange));
+  for (const {store, incremental} of params) {
+    const onChange = (delta: AnyDelta) => {
+      if (incremental && incremental(delta)) {
+        $s.set(get($s.get()), delta.ts);
+      } else {
+        $s.set(get(), delta.ts);
+      }
+    }
+    store.on("change", onChange);
+    $s.addCleanup(() => store.off("change", onChange));
   }
   return $s;
+
+  function getParamsValues() {
+    return params.map(p => p.store.get()) as ValuesFromFilterParams<S>;
+  }
 
   function get(items = $c.get()) {
     const added = [];
     const removed = [];
-    const params = $ss.map(s => s.get());
+    const paramsValues = getParamsValues();
     for (const item of items) {
       const oldItem = $s.map.get($s.key(item));
-      const shouldInclude = Boolean(test(item, ...params));
+      const shouldInclude = Boolean(test(item, ...paramsValues));
       if (oldItem && !shouldInclude) {
         removed.push(oldItem);
       } else if (!oldItem && shouldInclude) {
@@ -414,7 +432,7 @@ export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | Filte
     const filteredRemoved = [];
     const filteredUpdated = [];
 
-    const params = $ss.map(s => s.get());
+    const params = getParamsValues();
     filteredAdded.push(...added.filter(item => test(item, ...params)));
     for (const item of updated) {
       const oldItem = $s.map.get($s.key(item));
@@ -435,16 +453,6 @@ export function filter($c: KeyedCollection<any, any>, storesOrFn: Stores | Filte
       updated: filteredUpdated,
       removed: filteredRemoved,
     }, ts);
-  }
-
-  function onStoreChange({oldValue, newValue, ts}: BasicDelta<any>) {
-    if (typeof oldValue === "string" && typeof newValue === "string" && newValue.includes(oldValue)) {
-      // a special case that we don't have to filter all items from parent
-      $s.set(get($s.get()), ts);
-      return;
-    }
-    // refilter items from parent store
-    $s.set(get(), ts);
   }
 }
 
