@@ -25,6 +25,16 @@ describe("reindex", () => {
       [1, [ new Item(2, 1)]],
       [2, [ new Item(1, 2)]]
     ]));
+
+    $s.set({ removed: [new Item(1, 2)] });
+    assert.deepStrictEqual($r.get(), new Set([
+      [1, [ new Item(2, 1)]],
+    ]));
+
+    $s.set({ updated: [new Item(2, 3)] });
+    assert.deepStrictEqual($r.get(), new Set([
+      [3, [ new Item(2, 3)]],
+    ]));
   });
 
   it("duplicated index", () => {
@@ -37,4 +47,20 @@ describe("reindex", () => {
       [2, [ new Item(1, 2)]]
     ]));
   });
+
+  it("index doesn't match when removed", () => {
+    const $s = new ArrayStore<Item>(i => i.id, cmp);
+    const added = [new Item(1, 2), new Item(2, 1)];
+    $s.set({ added });
+    const $r = reindex($s, i => i.value);
+    assert.deepStrictEqual($r.get(), new Set([
+      [1, [ new Item(2, 1)]],
+      [2, [ new Item(1, 2)]]
+    ]));
+
+    $s.set({ removed: [new Item(1, 3)] });
+    assert.deepStrictEqual($r.get(), new Set([
+      [1, [ new Item(2, 1)]],
+    ]));
+  })
 });
