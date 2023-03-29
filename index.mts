@@ -633,11 +633,17 @@ export function reindex<C extends KeyedCollection<any, any>, Index>(
   indexFn: (item: ItemFromCollection<C>) => Index
 ): SetStore<readonly [Index, ItemFromCollection<C>[]]> {
   const $s = new SetStore<readonly [Index, ItemFromCollection<C>[]]>(t => t[0]);
+  onChange({
+    added: [...$c.get()],
+    updated: [],
+    removed: [],
+    ts: $c.ts
+  });
   $c.on("change", onChange);
   $s.addCleanup(() => $c.off("change", onChange));
   return $s;
 
-  function onChange({added, updated, removed, ts}: DeltaFromCollection<C>) {
+  function onChange({added, updated, removed, ts}: CollectionDelta<ItemFromCollection<C>>) {
     const modified = new Map<Index, ItemFromCollection<C>[]>();
 
     for (const item of [...updated, ...removed]) {
