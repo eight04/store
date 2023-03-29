@@ -71,7 +71,12 @@ API
 Changelog
 ---------
 
-* 0.3.0 (Feb, 10, 2023)
+* 0.4.0 (Mar 30, 2023)
+
+  - **Change: `filter` function has a different signature. Now you have to specify incremental query manually.**
+  - Add: `reindex` function.
+
+* 0.3.0 (Feb 10, 2023)
 
   - Change: `slice` now accepts a single `$range` store.
 
