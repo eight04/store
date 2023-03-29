@@ -49,7 +49,7 @@ Register a cleanup function.
 
 #### Defined in
 
-[index.mts:28](https://github.com/eight04/store/blob/ef00f00/index.mts#L28)
+[index.mts:28](https://github.com/eight04/store/blob/ffefaa0/index.mts#L28)
 
 ___
 
@@ -65,7 +65,7 @@ Clone the store.
 
 #### Defined in
 
-[index.mts:32](https://github.com/eight04/store/blob/ef00f00/index.mts#L32)
+[index.mts:32](https://github.com/eight04/store/blob/ffefaa0/index.mts#L32)
 
 ___
 
@@ -81,7 +81,7 @@ Cleanup listeners attached to parent stores.
 
 #### Defined in
 
-[index.mts:30](https://github.com/eight04/store/blob/ef00f00/index.mts#L30)
+[index.mts:30](https://github.com/eight04/store/blob/ffefaa0/index.mts#L30)
 
 ___
 
@@ -97,7 +97,7 @@ Get the value
 
 #### Defined in
 
-[index.mts:26](https://github.com/eight04/store/blob/ef00f00/index.mts#L26)
+[index.mts:26](https://github.com/eight04/store/blob/ffefaa0/index.mts#L26)
 
 ___
 
@@ -120,7 +120,7 @@ Remove an event listener.
 
 #### Defined in
 
-[index.mts:22](https://github.com/eight04/store/blob/ef00f00/index.mts#L22)
+[index.mts:22](https://github.com/eight04/store/blob/ffefaa0/index.mts#L22)
 
 ___
 
@@ -143,7 +143,7 @@ Register an event listener.
 
 #### Defined in
 
-[index.mts:20](https://github.com/eight04/store/blob/ef00f00/index.mts#L20)
+[index.mts:20](https://github.com/eight04/store/blob/ffefaa0/index.mts#L20)
 
 ___
 
@@ -166,4 +166,4 @@ Set a new value.
 
 #### Defined in
 
-[index.mts:24](https://github.com/eight04/store/blob/ef00f00/index.mts#L24)
+[index.mts:24](https://github.com/eight04/store/blob/ffefaa0/index.mts#L24)

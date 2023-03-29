@@ -20,4 +20,4 @@ The timestamp of the change event.
 
 #### Defined in
 
-[index.mts:10](https://github.com/eight04/store/blob/ef00f00/index.mts#L10)
+[index.mts:10](https://github.com/eight04/store/blob/ffefaa0/index.mts#L10)

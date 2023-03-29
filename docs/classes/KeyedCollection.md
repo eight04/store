@@ -48,7 +48,7 @@ A key-item map.
 
 #### Defined in
 
-[index.mts:183](https://github.com/eight04/store/blob/ef00f00/index.mts#L183)
+[index.mts:183](https://github.com/eight04/store/blob/ffefaa0/index.mts#L183)
 
 ## Methods
 
@@ -74,7 +74,7 @@ Add a cleanup function which will be called when the store is destroyed.
 
 #### Defined in
 
-[index.mts:139](https://github.com/eight04/store/blob/ef00f00/index.mts#L139)
+[index.mts:139](https://github.com/eight04/store/blob/ffefaa0/index.mts#L139)
 
 ___
 
@@ -94,7 +94,7 @@ Clone the store.
 
 #### Defined in
 
-[index.mts:131](https://github.com/eight04/store/blob/ef00f00/index.mts#L131)
+[index.mts:131](https://github.com/eight04/store/blob/ffefaa0/index.mts#L131)
 
 ___
 
@@ -116,7 +116,7 @@ This function removes event listeners attached to parent stores.
 
 #### Defined in
 
-[index.mts:119](https://github.com/eight04/store/blob/ef00f00/index.mts#L119)
+[index.mts:119](https://github.com/eight04/store/blob/ffefaa0/index.mts#L119)
 
 ___
 
@@ -136,7 +136,7 @@ Get the value.
 
 #### Defined in
 
-[index.mts:105](https://github.com/eight04/store/blob/ef00f00/index.mts#L105)
+[index.mts:105](https://github.com/eight04/store/blob/ffefaa0/index.mts#L105)
 
 ___
 
@@ -156,7 +156,7 @@ Get the latest delta.
 
 #### Defined in
 
-[index.mts:111](https://github.com/eight04/store/blob/ef00f00/index.mts#L111)
+[index.mts:111](https://github.com/eight04/store/blob/ffefaa0/index.mts#L111)
 
 ___
 
@@ -183,7 +183,7 @@ Update the store
 
 #### Defined in
 
-[index.mts:80](https://github.com/eight04/store/blob/ef00f00/index.mts#L80)
+[index.mts:80](https://github.com/eight04/store/blob/ffefaa0/index.mts#L80)
 
 ___
 
@@ -209,4 +209,4 @@ Set with an async function. You may want to use this function to update store wi
 
 #### Defined in
 
-[index.mts:95](https://github.com/eight04/store/blob/ef00f00/index.mts#L95)
+[index.mts:95](https://github.com/eight04/store/blob/ffefaa0/index.mts#L95)
