@@ -624,3 +624,69 @@ export function sort<Item>(
   }
 }
 
+
+/**
+ * Reindex a collection into a new set
+ */
+export function reindex<C extends KeyedCollection<any, any>, Index>(
+  $c: C,
+  indexFn: (item: ItemFromCollection<C>) => Index
+): SetStore<readonly [Index, ItemFromCollection<C>[]]> {
+  const $s = new SetStore<readonly [Index, ItemFromCollection<C>[]]>(t => t[0]);
+  const keyToIndexCache = new Map<ReturnType<typeof $c.key>, Index>();
+  onChange({
+    added: [...$c.get()],
+    updated: [],
+    removed: [],
+    ts: $c.ts
+  });
+  $c.on("change", onChange);
+  $s.addCleanup(() => $c.off("change", onChange));
+  return $s;
+
+  function onChange({added, updated, removed, ts}: CollectionDelta<ItemFromCollection<C>>) {
+    const modified = new Map<Index, ItemFromCollection<C>[]>();
+
+    for (const item of [...updated, ...removed]) {
+      // FIXME: updated items will be move to the last. is that intended?
+      const key = $c.key(item);
+      const index = keyToIndexCache.get(key)!;
+      if (!modified.has(index)) {
+        modified.set(index, $s.map.get(index)![1]);
+      }
+      modified.set(index, modified.get(index)!.filter(i => key !== $c.key(i)))
+      keyToIndexCache.delete(key);
+    }
+
+    for (const item of [...updated, ...added]) {
+      const index = indexFn(item);
+      const key = $c.key(item);
+      if (!modified.has(index)) {
+        modified.set(index, $s.map.get(index)?.[1] || []);
+      }
+      modified.set(index, [...modified.get(index)!, item]);
+      keyToIndexCache.set(key, index);
+    }
+
+    const toAdd = [];
+    const toUpdate = [];
+    const toRemove = [];
+
+    for (const [index, value] of modified.entries()) {
+      if (!$s.map.has(index)) {
+        toAdd.push([index, value] as const);
+      } else if (value.length) {
+        toUpdate.push([index, value] as const);
+      } else {
+        // FIXME: value is always an empty array here. which should be set to removed items
+        toRemove.push([index, value] as const);
+      }
+    }
+
+    $s.set({
+      added: toAdd,
+      updated: toUpdate,
+      removed: toRemove
+    }, ts);
+  }
+}
