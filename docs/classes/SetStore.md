@@ -60,7 +60,7 @@ KeyedCollection&lt;T, Set&lt;T\&gt;\&gt;.constructor
 
 #### Defined in
 
-[index.mts:208](https://github.com/eight04/store/blob/390ae2f/index.mts#L208)
+[index.mts:209](https://github.com/eight04/store/blob/ef00f00/index.mts#L209)
 
 ## Properties
 
@@ -76,7 +76,7 @@ A key-item map.
 
 #### Defined in
 
-[index.mts:182](https://github.com/eight04/store/blob/390ae2f/index.mts#L182)
+[index.mts:183](https://github.com/eight04/store/blob/ef00f00/index.mts#L183)
 
 ## Methods
 
@@ -102,7 +102,7 @@ Add a cleanup function which will be called when the store is destroyed.
 
 #### Defined in
 
-[index.mts:138](https://github.com/eight04/store/blob/390ae2f/index.mts#L138)
+[index.mts:139](https://github.com/eight04/store/blob/ef00f00/index.mts#L139)
 
 ___
 
@@ -122,7 +122,7 @@ Clone the store.
 
 #### Defined in
 
-[index.mts:130](https://github.com/eight04/store/blob/390ae2f/index.mts#L130)
+[index.mts:131](https://github.com/eight04/store/blob/ef00f00/index.mts#L131)
 
 ___
 
@@ -144,7 +144,7 @@ This function removes event listeners attached to parent stores.
 
 #### Defined in
 
-[index.mts:118](https://github.com/eight04/store/blob/390ae2f/index.mts#L118)
+[index.mts:119](https://github.com/eight04/store/blob/ef00f00/index.mts#L119)
 
 ___
 
@@ -164,7 +164,7 @@ Get the value.
 
 #### Defined in
 
-[index.mts:104](https://github.com/eight04/store/blob/390ae2f/index.mts#L104)
+[index.mts:105](https://github.com/eight04/store/blob/ef00f00/index.mts#L105)
 
 ___
 
@@ -184,7 +184,7 @@ Get the latest delta.
 
 #### Defined in
 
-[index.mts:110](https://github.com/eight04/store/blob/390ae2f/index.mts#L110)
+[index.mts:111](https://github.com/eight04/store/blob/ef00f00/index.mts#L111)
 
 ___
 
@@ -211,7 +211,7 @@ Update the store
 
 #### Defined in
 
-[index.mts:79](https://github.com/eight04/store/blob/390ae2f/index.mts#L79)
+[index.mts:80](https://github.com/eight04/store/blob/ef00f00/index.mts#L80)
 
 ___
 
@@ -237,4 +237,4 @@ Set with an async function. You may want to use this function to update store wi
 
 #### Defined in
 
-[index.mts:94](https://github.com/eight04/store/blob/390ae2f/index.mts#L94)
+[index.mts:95](https://github.com/eight04/store/blob/ef00f00/index.mts#L95)

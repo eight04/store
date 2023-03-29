@@ -66,7 +66,7 @@ $c.get() // [{name: "orange", ...}]
 API
 ----
 
-[docs/README.md](docs/README.md)
+[dist/index.d.mts](dist/index.d.mts)
 
 Changelog
 ---------

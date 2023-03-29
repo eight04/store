@@ -1,6 +1,6 @@
 [@eight04/store](../README.md) / AnyStore
 
-# Interface: AnyStore<Value\>
+# Interface: AnyStore<Value, Delta\>
 
 An interface represents a valid store.
 
@@ -8,9 +8,10 @@ Basically, a store has to be able to set/get value and emit a "change" event whe
 
 ## Type parameters
 
-| Name |
-| :------ |
-| `Value` |
+| Name | Type |
+| :------ | :------ |
+| `Value` | `Value` |
+| `Delta` | extends [`AnyDelta`](AnyDelta.md) |
 
 ## Implemented by
 
@@ -48,23 +49,23 @@ Register a cleanup function.
 
 #### Defined in
 
-[index.mts:18](https://github.com/eight04/store/blob/390ae2f/index.mts#L18)
+[index.mts:28](https://github.com/eight04/store/blob/ef00f00/index.mts#L28)
 
 ___
 
 ### clone
 
-▸ **clone**(): [`AnyStore`](AnyStore.md)<`Value`\>
+▸ **clone**(): [`AnyStore`](AnyStore.md)<`Value`, `Delta`\>
 
 Clone the store.
 
 #### Returns
 
-[`AnyStore`](AnyStore.md)<`Value`\>
+[`AnyStore`](AnyStore.md)<`Value`, `Delta`\>
 
 #### Defined in
 
-[index.mts:22](https://github.com/eight04/store/blob/390ae2f/index.mts#L22)
+[index.mts:32](https://github.com/eight04/store/blob/ef00f00/index.mts#L32)
 
 ___
 
@@ -80,7 +81,7 @@ Cleanup listeners attached to parent stores.
 
 #### Defined in
 
-[index.mts:20](https://github.com/eight04/store/blob/390ae2f/index.mts#L20)
+[index.mts:30](https://github.com/eight04/store/blob/ef00f00/index.mts#L30)
 
 ___
 
@@ -96,7 +97,7 @@ Get the value
 
 #### Defined in
 
-[index.mts:16](https://github.com/eight04/store/blob/390ae2f/index.mts#L16)
+[index.mts:26](https://github.com/eight04/store/blob/ef00f00/index.mts#L26)
 
 ___
 
@@ -119,13 +120,13 @@ Remove an event listener.
 
 #### Defined in
 
-[index.mts:12](https://github.com/eight04/store/blob/390ae2f/index.mts#L12)
+[index.mts:22](https://github.com/eight04/store/blob/ef00f00/index.mts#L22)
 
 ___
 
 ### on
 
-▸ **on**(`event`, `...args`): `void`
+▸ **on**(`event`, `callback`): `void`
 
 Register an event listener.
 
@@ -133,8 +134,8 @@ Register an event listener.
 
 | Name | Type |
 | :------ | :------ |
-| `event` | `string` |
-| `...args` | `any`[] |
+| `event` | ``"change"`` |
+| `callback` | (`delta`: `Delta`) => `void` |
 
 #### Returns
 
@@ -142,7 +143,7 @@ Register an event listener.
 
 #### Defined in
 
-[index.mts:10](https://github.com/eight04/store/blob/390ae2f/index.mts#L10)
+[index.mts:20](https://github.com/eight04/store/blob/ef00f00/index.mts#L20)
 
 ___
 
@@ -165,4 +166,4 @@ Set a new value.
 
 #### Defined in
 
-[index.mts:14](https://github.com/eight04/store/blob/390ae2f/index.mts#L14)
+[index.mts:24](https://github.com/eight04/store/blob/ef00f00/index.mts#L24)

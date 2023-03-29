@@ -32,6 +32,7 @@
 - [derived](README.md#derived)
 - [filter](README.md#filter)
 - [map](README.md#map)
+- [reindex](README.md#reindex)
 - [slice](README.md#slice)
 - [sort](README.md#sort)
 
@@ -51,7 +52,7 @@ The basic delta for primitive stores.
 
 #### Defined in
 
-[index.mts:38](https://github.com/eight04/store/blob/390ae2f/index.mts#L38)
+[index.mts:39](https://github.com/eight04/store/blob/ef00f00/index.mts#L39)
 
 ___
 
@@ -84,7 +85,7 @@ Compare two items. Returns negative if a < b, returns positive if a > b, returns
 
 #### Defined in
 
-[index.mts:262](https://github.com/eight04/store/blob/390ae2f/index.mts#L262)
+[index.mts:263](https://github.com/eight04/store/blob/ef00f00/index.mts#L263)
 
 ___
 
@@ -111,7 +112,7 @@ Delta for collection store.
 
 #### Defined in
 
-[index.mts:163](https://github.com/eight04/store/blob/390ae2f/index.mts#L163)
+[index.mts:164](https://github.com/eight04/store/blob/ef00f00/index.mts#L164)
 
 ___
 
@@ -137,7 +138,7 @@ Add, update, and remove items in a collection.
 
 #### Defined in
 
-[index.mts:151](https://github.com/eight04/store/blob/390ae2f/index.mts#L151)
+[index.mts:152](https://github.com/eight04/store/blob/ef00f00/index.mts#L152)
 
 ___
 
@@ -169,25 +170,25 @@ Returns the key of the item.
 
 #### Defined in
 
-[index.mts:146](https://github.com/eight04/store/blob/390ae2f/index.mts#L146)
+[index.mts:147](https://github.com/eight04/store/blob/ef00f00/index.mts#L147)
 
 ___
 
 ### Stores
 
-Ƭ **Stores**: [`AnyStore`](interfaces/AnyStore.md)<`any`\> \| [[`AnyStore`](interfaces/AnyStore.md)<`any`\>, ...AnyStore<any\>[]] \| [`AnyStore`](interfaces/AnyStore.md)<`any`\>[]
+Ƭ **Stores**: [`AnyStore`](interfaces/AnyStore.md)<`any`, [`AnyDelta`](interfaces/AnyDelta.md)\> \| [`AnyStore`](interfaces/AnyStore.md)<`any`, [`AnyDelta`](interfaces/AnyDelta.md)\>[]
 
 One or multiple parent stores.
 
 #### Defined in
 
-[index.mts:339](https://github.com/eight04/store/blob/390ae2f/index.mts#L339)
+[index.mts:340](https://github.com/eight04/store/blob/ef00f00/index.mts#L340)
 
 ___
 
 ### StoresValues
 
-Ƭ **StoresValues**<`T`\>: `T` extends [`AnyStore`](interfaces/AnyStore.md)<infer U\> ? [`U`] : { [K in keyof T]: T[K] extends AnyStore<infer U\> ? U : never }
+Ƭ **StoresValues**<`T`\>: `T` extends [`AnyStore`](interfaces/AnyStore.md)<infer U, [`AnyDelta`](interfaces/AnyDelta.md)\> ? [`U`] : { [K in keyof T]: T[K] extends AnyStore<infer U, AnyDelta\> ? U : never }
 
 Values of parent stores.
 
@@ -199,7 +200,7 @@ Values of parent stores.
 
 #### Defined in
 
-[index.mts:341](https://github.com/eight04/store/blob/390ae2f/index.mts#L341)
+[index.mts:342](https://github.com/eight04/store/blob/ef00f00/index.mts#L342)
 
 ## Functions
 
@@ -228,7 +229,7 @@ Create a new store that counts elements from a collection.
 
 #### Defined in
 
-[index.mts:503](https://github.com/eight04/store/blob/390ae2f/index.mts#L503)
+[index.mts:511](https://github.com/eight04/store/blob/ef00f00/index.mts#L511)
 
 ___
 
@@ -258,13 +259,13 @@ Combine multiple stores into a new store.
 
 #### Defined in
 
-[index.mts:350](https://github.com/eight04/store/blob/390ae2f/index.mts#L350)
+[index.mts:351](https://github.com/eight04/store/blob/ef00f00/index.mts#L351)
 
 ___
 
 ### filter
 
-▸ **filter**<`C`, `S`\>(`$c`, `$ss`, `test`): `C`
+▸ **filter**<`C`, `S`\>(`$c`, `params`, `test`): `C`
 
 Create a new store that filters items in a collection.
 
@@ -273,15 +274,15 @@ Create a new store that filters items in a collection.
 | Name | Type |
 | :------ | :------ |
 | `C` | extends [`KeyedCollection`](classes/KeyedCollection.md)<`any`, `any`, [`CollectionDelta`](README.md#collectiondelta)<`any`\>, `C`\> |
-| `S` | extends [`Stores`](README.md#stores) |
+| `S` | extends `FilterParam`<[`AnyStore`](interfaces/AnyStore.md)<`any`, `any`\>\>[] |
 
 #### Parameters
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `$c` | `C` | A collection store. |
-| `$ss` | `S` | A store, or a list of stores whose values can be used as filter parameters. |
-| `test` | (`item`: `ItemFromCollection`<`C`\>, ...`values`: [`StoresValues`](README.md#storesvalues)<`S`\>) => `boolean` | A callback function that returns a boolean to filter the item. |
+| `params` | `S` | A list of parameters that can be used in the test function. |
+| `test` | (`item`: `ItemFromCollection`<`C`\>, ...`values`: `ValuesFromFilterParams`<`S`\>) => `boolean` | A callback function that returns a boolean to filter the item. |
 
 #### Returns
 
@@ -289,7 +290,7 @@ Create a new store that filters items in a collection.
 
 #### Defined in
 
-[index.mts:377](https://github.com/eight04/store/blob/390ae2f/index.mts#L377)
+[index.mts:388](https://github.com/eight04/store/blob/ef00f00/index.mts#L388)
 
 ___
 
@@ -319,7 +320,37 @@ Create a new collection with derived items.
 
 #### Defined in
 
-[index.mts:565](https://github.com/eight04/store/blob/390ae2f/index.mts#L565)
+[index.mts:573](https://github.com/eight04/store/blob/ef00f00/index.mts#L573)
+
+___
+
+### reindex
+
+▸ **reindex**<`C`, `Index`\>(`$c`, `indexFn`): [`SetStore`](classes/SetStore.md)<readonly [`Index`, `ItemFromCollection`<`C`\>[]]\>
+
+Reindex a collection into a new set
+
+#### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `C` | extends [`KeyedCollection`](classes/KeyedCollection.md)<`any`, `any`, [`CollectionDelta`](README.md#collectiondelta)<`any`\>, `C`\> |
+| `Index` | `Index` |
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `$c` | `C` |
+| `indexFn` | (`item`: `ItemFromCollection`<`C`\>) => `Index` |
+
+#### Returns
+
+[`SetStore`](classes/SetStore.md)<readonly [`Index`, `ItemFromCollection`<`C`\>[]]\>
+
+#### Defined in
+
+[index.mts:631](https://github.com/eight04/store/blob/ef00f00/index.mts#L631)
 
 ___
 
@@ -342,7 +373,7 @@ typeof `$c`
 
 #### Defined in
 
-[index.mts:457](https://github.com/eight04/store/blob/390ae2f/index.mts#L457)
+[index.mts:465](https://github.com/eight04/store/blob/ef00f00/index.mts#L465)
 
 ___
 
@@ -371,4 +402,4 @@ Create a new array store from a collection.
 
 #### Defined in
 
-[index.mts:594](https://github.com/eight04/store/blob/390ae2f/index.mts#L594)
+[index.mts:602](https://github.com/eight04/store/blob/ef00f00/index.mts#L602)
