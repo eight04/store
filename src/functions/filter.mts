@@ -1,55 +1,7 @@
-import type { Store, CollectionStore } from "./store.mjs";
+import {pipe} from "./util.mjs";
 
-import {ValueStore, ArrayStore, SetStore} from "./store.mjs";
-
-export type StoresValues<S extends Store[]> = {
-  [K in keyof S]: S[K] extends Store ? ReturnType<S[K]["get"]> : never
-};
-export type StoreDelta<T extends Store> = T extends Store ? Parameters<T["set"]>[0] : never;
-export type StoresDeltas<S extends Store[]> = {
-  [K in keyof S]: S[K] extends Store ? StoreDelta<S[K]> : never
-};
-export type OneOf<T extends any[]> = T[number];
-
-export function derived<T, S extends Store[]>(stores: S, fn: (...args: StoresValues<S>) => T) {
-  // FIXME: is typescript be able to infer tuple type after Array.prototype.map?
-  // https://www.typescriptlang.org/play?#code/GYVwdgxgLglg9mABFApgZygHgGJzolAD1TABM1EBDMATwG0BdAPgApg8AuRXOASi56IA3gChE4xACcUUEJKTs4AOgC2lAA5tEAXiaJgvANwiAviKA
-  const getValue = () => fn(...stores.map(s => s.get()) as StoresValues<S>);
-  const $s = new ValueStore({value: getValue()});
-  pipe({
-    sources: stores,
-    target: $s,
-    onChange: (delta) => ({
-      newValue: getValue(),
-      ts: delta.ts
-    })
-  });
-  return $s;
-}
-
-/**
- * Pipe one or more source stores into target store.
- */
-export function pipe<S extends Store[], T extends Store>({
-  sources,
-  target,
-  onChange
-}: {
-  sources: S;
-  target: T;
-  onChange: (delta: OneOf<StoresDeltas<S>>, index: number) => StoreDelta<T> | null;
-}) {
-  sources.forEach((source, index) => {
-    const handleChange = (delta: OneOf<StoresDeltas<S>>) => {
-      const newDelta = onChange(delta, index);
-      if (newDelta) {
-        target.set(newDelta);
-      }
-    };
-    source.on("change", handleChange);
-    target._destroy.push(() => source.off("change", handleChange));
-  });
-}
+import type {Store, CollectionStore} from "../store.mjs";
+import type {StoresValues, StoreDelta} from "./util.mjs";
 
 export type FilterParam<T extends Store> = {
   store: T,
@@ -75,9 +27,10 @@ export function filter<T, C extends CollectionStore<T>, S extends FilterParam<St
       return refilter($c.get());
     }
   });
+  // FIXME: why { added: T[] } cannot be assigned to StoreDelta<C>?
   $s.set(filteredDelta({
     added: [...$c.get()]
-  }))
+  } as StoreDelta<C>))
   return $s;
 
   function getParamsValues() {
@@ -117,7 +70,4 @@ export function filter<T, C extends CollectionStore<T>, S extends FilterParam<St
   }
 }
 
-export function slice<T>($c: ArrayStore<T>, $range: ValueStore<[number, number]>) {
-  const $s = $c.clone();
 
-}
