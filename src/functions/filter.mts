@@ -1,7 +1,7 @@
 import {pipe} from "./util.mjs";
 
 import type {Store, CollectionStore} from "../store.mjs";
-import type {StoresValues, StoreDelta} from "./util.mjs";
+import type {StoresValues, StoreDelta, CollectionItem} from "./util.mjs";
 
 export type FilterParam<T extends Store> = {
   store: T,
@@ -11,7 +11,11 @@ export type FilterParamsStores<S extends FilterParam<Store>[]> = {
   [K in keyof S]: S[K] extends FilterParam<infer U> ? U : never
 };
 
-export function filter<T, C extends CollectionStore<T>, S extends FilterParam<Store>[]>($c: C, params: S, fn: (item: T, ...args: StoresValues<FilterParamsStores<S>>) => boolean) {
+export function filter<C extends CollectionStore<any>, S extends FilterParam<Store>[], T = CollectionItem<C>>(
+  $c: C,
+  params: S,
+  fn: (item: T, ...args: StoresValues<FilterParamsStores<S>>) => boolean
+) {
   const $s = $c.clone();
   pipe({
     sources: [$c, ...params.map(p => p.store)],

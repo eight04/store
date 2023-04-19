@@ -41,17 +41,18 @@ export type ValueDelta<T> = Delta & {
   oldValue: T;
   newValue: T;
 }
+export type SetValueDelta<T> = Partial<ValueDelta<T>> & Pick<ValueDelta<T>, "newValue">;
 
 export class ValueStore<T> extends Store {
-  value?: T;
-  constructor({value}: {value?: T} = {}) {
+  value: T;
+  constructor({value}: {value: T}) {
     super();
     this.value = value;
   }
-  set(delta: Partial<ValueDelta<T>>) {
+  set(delta: SetValueDelta<T>) {
     super.set(delta);
   }
-  _set(delta: Partial<ValueDelta<T>>) {
+  _set(delta: SetValueDelta<T>) {
     if (Object.is(delta.newValue, this.value) && (typeof delta.newValue !== "object" || delta.newValue == null)) {
       return false;
     }
@@ -59,7 +60,7 @@ export class ValueStore<T> extends Store {
     this.value = delta.newValue;
     return true;
   }
-  get(): T | undefined {
+  get(): T {
     return this.value;
   }
   _cloneArgs() {

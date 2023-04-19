@@ -1,4 +1,4 @@
-import type { Store } from "../store.mjs";
+import type { Store, CollectionStore } from "../store.mjs";
 
 export type StoresValues<S extends Store[]> = {
   [K in keyof S]: S[K] extends Store ? ReturnType<S[K]["get"]> : never
@@ -8,6 +8,7 @@ export type StoresDeltas<S extends Store[]> = {
   [K in keyof S]: S[K] extends Store ? StoreDelta<S[K]> : never
 };
 export type OneOf<T extends any[]> = T[number];
+export type CollectionItem<T> = T extends CollectionStore<infer U> ? U : never;
 
 /**
  * Pipe one or more source stores into target store.

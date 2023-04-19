@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 import * as assert from "node:assert";
-import {ArrayStore, Store, derived, filter} from "../index.mjs";
+import {ArrayStore, ValueStore, derived, filter} from "../src/index.mjs";
 
 class Item {
   id: number;
@@ -17,7 +17,10 @@ function cmp(a: Item, b: Item) {
 
 describe("ArrayStore", () => {
   it("basic", () => {
-    const $s = new ArrayStore<Item>(i => i.id, cmp);
+    const $s = new ArrayStore<Item>({
+      key: i => i.id,
+      cmp
+    });
     assert.equal($s.get().length, 0);
     const added = [new Item(1, 2), new Item(2, 1)];
     $s.set({ added });
@@ -26,15 +29,19 @@ describe("ArrayStore", () => {
   });
 
   it("derived", () => {
-    const $s = new ArrayStore<Item>(i => i.id, cmp);
-    const $size = derived($s, s => s.length);
+    const $s = new ArrayStore<Item>({
+      key: i => i.id, cmp
+    });
+    const $size = derived([$s], s => s.length);
     assert.equal($size.get(), 0);
     $s.set({ added: [new Item(1, 1), new Item(2, 2)] });
     assert.equal($size.get(), 2);
   });
 
   it("filter", () => {
-    const $a = new ArrayStore<Item>(i => i.id, cmp);
+    const $a = new ArrayStore<Item>({
+      key: i => i.id, cmp
+    });
     const $b = filter($a, [], i => i.value > 0);
     $a.set({
       added: [
@@ -53,12 +60,14 @@ describe("ArrayStore", () => {
   });
 
   it("filter with store", () => {
-    const $a = new ArrayStore<Item>(i => i.id, cmp);
-    const $b = new Store<number>(0);
+    const $a = new ArrayStore<Item>({
+      key: i => i.id, cmp
+    });
+    const $b = new ValueStore({value: 0});
     const $c = filter(
       $a, 
       [{store: $b}],
-      (i, b) => i.value > b
+      (i, b) => i.value > b!
     );
     $a.set({
       added: [
@@ -74,7 +83,7 @@ describe("ArrayStore", () => {
       new Item(2, 10),
       new Item(5, 30)
     ]);
-    $b.set(20);
+    $b.set({newValue: 20});
     assert.deepStrictEqual($c.get(), [
       new Item(5, 30)
     ]);
